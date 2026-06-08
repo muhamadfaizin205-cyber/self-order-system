@@ -239,49 +239,167 @@ function RecoScroll({ items, onAdd }) {
 }
 
 // ============================================================
-// SIDE DRAWER (Hamburger Menu)
+// SIDE DRAWER (Hamburger Menu) — Fungsional penuh
 // ============================================================
 function SideDrawer({ open, onClose }) {
+  const [subView, setSubView] = useState(null); // null | "history" | "language" | "help" | "privacy"
+  const [lang, setLang] = useState("id");
+
   if (!open) return null;
-  const items = [
-    { icon: <History size={18} />, label: "Riwayat Pesanan", sub: "Lihat pesanan sebelumnya" },
-    { icon: <Globe size={18} />, label: "Bahasa", sub: "Indonesia" },
-    { icon: <HelpCircle size={18} />, label: "Bantuan", sub: "FAQ & panduan pemesanan" },
-    { icon: <Shield size={18} />, label: "Kebijakan Privasi", sub: "Syarat & ketentuan" },
+
+  const back = () => setSubView(null);
+  const close = () => { setSubView(null); onClose(); };
+
+  const menuItems = [
+    { key: "history", icon: <History size={18} />, label: "Riwayat Pesanan", sub: "Lihat pesanan sebelumnya" },
+    { key: "language", icon: <Globe size={18} />, label: "Bahasa", sub: lang === "id" ? "Indonesia" : "English" },
+    { key: "help", icon: <HelpCircle size={18} />, label: "Bantuan", sub: "FAQ & panduan pemesanan" },
+    { key: "privacy", icon: <Shield size={18} />, label: "Kebijakan Privasi", sub: "Syarat & ketentuan" },
   ];
-  return (
-    <div style={{ position: "absolute", inset: 0, zIndex: 60 }} onClick={onClose}>
-      <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,.45)", transition: "opacity .3s" }} />
-      <div onClick={e => e.stopPropagation()} style={{
-        position: "absolute", top: 0, left: 0, bottom: 0, width: "78%", maxWidth: 320,
-        background: "#fff", animation: "slideLeft .25s ease", boxShadow: "4px 0 20px rgba(0,0,0,.15)",
-        display: "flex", flexDirection: "column",
-      }}>
+
+  const faqItems = [
+    { q: "Bagaimana cara memesan?", a: "Scan QR code di meja Anda, pilih menu, kustomisasi sesuai selera, lalu bayar lewat QRIS atau kasir. Pesanan langsung masuk ke dapur." },
+    { q: "Bisa bayar tunai?", a: "Bisa! Saat checkout, pilih 'Bayar di Kasir'. Pesanan akan masuk sistem, dan Anda tinggal bayar di kasir." },
+    { q: "Berapa lama pesanan siap?", a: "Biasanya 10-15 menit tergantung jumlah pesanan. Makanan akan diantar langsung ke meja Anda." },
+    { q: "Level pedas bisa diubah?", a: "Level pedas dipilih saat menambahkan menu ke keranjang. Level 0 (tidak pedas) sampai Level 8 (sangat pedas). Level 6 dan 8 ada biaya tambahan." },
+    { q: "Pesanan salah, bagaimana?", a: "Hubungi staf restoran terdekat. Mereka akan membantu mengubah atau membatalkan pesanan Anda." },
+    { q: "QRIS saya gagal/expired?", a: "QRIS berlaku 10 menit. Jika expired, Anda bisa membuat pesanan baru. Tidak ada uang yang terpotong jika belum bayar." },
+  ];
+
+  const [faqOpen, setFaqOpen] = useState(null);
+
+  const drawerContent = () => {
+    if (subView === "history") return (
+      <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "16px 20px", borderBottom: "1px solid #eee" }}>
+          <button className="tap" onClick={back} style={{ background: "none", border: "none", cursor: "pointer", display: "flex" }}><ChevronLeft size={20} /></button>
+          <span style={{ fontWeight: 700, fontSize: 15 }}>Riwayat Pesanan</span>
+        </div>
+        <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 30, color: "#aaa" }}>
+          <History size={48} color="#ddd" />
+          <div style={{ fontWeight: 600, fontSize: 15, marginTop: 14, color: "#999" }}>Belum ada pesanan</div>
+          <div style={{ fontSize: 12, marginTop: 4, textAlign: "center", lineHeight: 1.5 }}>Pesanan yang sudah selesai akan muncul di sini. Scan QR di meja untuk mulai memesan.</div>
+        </div>
+      </div>
+    );
+
+    if (subView === "language") return (
+      <div style={{ flex: 1 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "16px 20px", borderBottom: "1px solid #eee" }}>
+          <button className="tap" onClick={back} style={{ background: "none", border: "none", cursor: "pointer", display: "flex" }}><ChevronLeft size={20} /></button>
+          <span style={{ fontWeight: 700, fontSize: 15 }}>Pilih Bahasa</span>
+        </div>
+        <div style={{ padding: "8px 0" }}>
+          {[{ code: "id", flag: "🇮🇩", name: "Bahasa Indonesia", sub: "Indonesian" }, { code: "en", flag: "🇬🇧", name: "English", sub: "Inggris" }].map(l => (
+            <button key={l.code} className="tap" onClick={() => setLang(l.code)} style={{
+              width: "100%", display: "flex", alignItems: "center", gap: 14, padding: "16px 20px",
+              border: "none", background: lang === l.code ? GL : "transparent", cursor: "pointer", textAlign: "left",
+              transition: "background .15s",
+            }}>
+              <span style={{ fontSize: 24 }}>{l.flag}</span>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontWeight: 600, fontSize: 14, color: "#222" }}>{l.name}</div>
+                <div style={{ fontSize: 11, color: "#999" }}>{l.sub}</div>
+              </div>
+              {lang === l.code && <CheckCircle2 size={18} color={G} />}
+            </button>
+          ))}
+        </div>
+      </div>
+    );
+
+    if (subView === "help") return (
+      <div style={{ flex: 1, overflowY: "auto" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "16px 20px", borderBottom: "1px solid #eee" }}>
+          <button className="tap" onClick={back} style={{ background: "none", border: "none", cursor: "pointer", display: "flex" }}><ChevronLeft size={20} /></button>
+          <span style={{ fontWeight: 700, fontSize: 15 }}>Bantuan & FAQ</span>
+        </div>
+        <div style={{ padding: "8px 12px" }}>
+          {faqItems.map((f, i) => (
+            <div key={i} style={{ marginBottom: 4 }}>
+              <button className="tap" onClick={() => setFaqOpen(faqOpen === i ? null : i)} style={{
+                width: "100%", display: "flex", justifyContent: "space-between", alignItems: "center",
+                padding: "14px 10px", border: "none", background: faqOpen === i ? GL : "transparent",
+                cursor: "pointer", textAlign: "left", borderRadius: 10, transition: "background .2s",
+              }}>
+                <span style={{ fontWeight: 600, fontSize: 13, color: "#222", flex: 1, paddingRight: 10 }}>{f.q}</span>
+                <ChevronDown size={16} color="#999" style={{ transform: faqOpen === i ? "rotate(180deg)" : "none", transition: "transform .3s", flexShrink: 0 }} />
+              </button>
+              <div style={{ maxHeight: faqOpen === i ? 200 : 0, overflow: "hidden", transition: "max-height .3s ease" }}>
+                <div style={{ padding: "8px 10px 14px", fontSize: 12.5, color: "#666", lineHeight: 1.6 }}>{f.a}</div>
+              </div>
+            </div>
+          ))}
+          <div style={{ padding: "16px 10px", borderTop: "1px solid #eee", marginTop: 8 }}>
+            <div style={{ fontSize: 12, color: "#999", marginBottom: 6 }}>Butuh bantuan lebih?</div>
+            <button className="tap" style={{ padding: "10px 16px", borderRadius: 10, border: `1.5px solid ${G}`, background: "#fff", color: G, fontWeight: 600, fontSize: 13, cursor: "pointer" }}>Hubungi Kami</button>
+          </div>
+        </div>
+      </div>
+    );
+
+    if (subView === "privacy") return (
+      <div style={{ flex: 1, overflowY: "auto" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "16px 20px", borderBottom: "1px solid #eee" }}>
+          <button className="tap" onClick={back} style={{ background: "none", border: "none", cursor: "pointer", display: "flex" }}><ChevronLeft size={20} /></button>
+          <span style={{ fontWeight: 700, fontSize: 15 }}>Kebijakan Privasi</span>
+        </div>
+        <div style={{ padding: "16px 20px", fontSize: 12.5, color: "#555", lineHeight: 1.7 }}>
+          <div style={{ fontWeight: 700, fontSize: 14, color: "#222", marginBottom: 8 }}>Kebijakan Privasi Mie 99</div>
+          <p>Kami menghargai privasi Anda. Data yang kami kumpulkan saat pemesanan (nama, nomor ponsel, email) digunakan hanya untuk:</p>
+          <p style={{ marginTop: 8 }}><b>1. Memproses pesanan Anda</b> — Nama dan nomor meja digunakan untuk mengidentifikasi dan mengantarkan pesanan.</p>
+          <p style={{ marginTop: 8 }}><b>2. Mengirim struk digital</b> — Email digunakan untuk mengirim bukti pembayaran jika Anda memilih opsi ini.</p>
+          <p style={{ marginTop: 8 }}><b>3. Informasi promo</b> — Nomor ponsel dapat digunakan untuk mengirimkan promo, namun Anda bisa berhenti kapan saja.</p>
+          <p style={{ marginTop: 12 }}>Kami <b>tidak</b> menjual atau membagikan data Anda kepada pihak ketiga. Data pembayaran diproses sepenuhnya oleh payment gateway (Midtrans) dan tidak disimpan di server kami.</p>
+          <p style={{ marginTop: 12 }}>Dengan menggunakan layanan ini, Anda menyetujui kebijakan privasi di atas.</p>
+          <div style={{ marginTop: 16, padding: "12px", background: GL, borderRadius: 10, fontSize: 12, color: G }}>
+            Terakhir diperbarui: Juni 2026
+          </div>
+        </div>
+      </div>
+    );
+
+    // Main menu
+    return (
+      <>
         <div style={{ padding: "28px 20px 20px", background: `linear-gradient(135deg,${G},${G2})`, color: "#fff" }}>
           <div style={{ fontSize: 20, fontWeight: 800 }}>Mie 99</div>
           <div style={{ fontSize: 12, opacity: .8, marginTop: 4 }}>👋 Masuk sebagai tamu</div>
-          <button className="tap" style={{
-            marginTop: 12, padding: "8px 20px", borderRadius: 8, border: "1.5px solid rgba(255,255,255,.5)",
-            background: "transparent", color: "#fff", fontWeight: 600, fontSize: 12, cursor: "pointer",
-          }}>Masuk / Daftar</button>
+          <button className="tap" style={{ marginTop: 12, padding: "8px 20px", borderRadius: 8, border: "1.5px solid rgba(255,255,255,.5)", background: "transparent", color: "#fff", fontWeight: 600, fontSize: 12, cursor: "pointer", transition: "background .2s" }}
+            onMouseOver={e => e.currentTarget.style.background = "rgba(255,255,255,.15)"}
+            onMouseOut={e => e.currentTarget.style.background = "transparent"}>Masuk / Daftar</button>
         </div>
         <div style={{ flex: 1, padding: "8px 0" }}>
-          {items.map((it, i) => (
-            <button key={i} className="tap" style={{
+          {menuItems.map((it, i) => (
+            <button key={i} className="tap" onClick={() => setSubView(it.key)} style={{
               width: "100%", display: "flex", alignItems: "center", gap: 14, padding: "14px 20px",
               border: "none", background: "transparent", cursor: "pointer", textAlign: "left",
               transition: "background .15s",
             }} onMouseOver={e => e.currentTarget.style.background = GL}
               onMouseOut={e => e.currentTarget.style.background = "transparent"}>
               <div style={{ color: G }}>{it.icon}</div>
-              <div>
+              <div style={{ flex: 1 }}>
                 <div style={{ fontWeight: 600, fontSize: 14, color: "#222" }}>{it.label}</div>
                 <div style={{ fontSize: 11, color: "#999", marginTop: 1 }}>{it.sub}</div>
               </div>
+              <ChevronRight size={16} color="#ccc" />
             </button>
           ))}
         </div>
         <div style={{ padding: "16px 20px", borderTop: "1px solid #eee", fontSize: 11, color: "#bbb" }}>v1.0.0 · Self-Order System</div>
+      </>
+    );
+  };
+
+  return (
+    <div style={{ position: "absolute", inset: 0, zIndex: 60 }} onClick={close}>
+      <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,.45)" }} />
+      <div onClick={e => e.stopPropagation()} style={{
+        position: "absolute", top: 0, left: 0, bottom: 0, width: "80%", maxWidth: 330,
+        background: "#fff", animation: "slideLeft .25s ease", boxShadow: "4px 0 20px rgba(0,0,0,.15)",
+        display: "flex", flexDirection: "column", overflow: "hidden",
+      }}>
+        {drawerContent()}
       </div>
     </div>
   );
@@ -546,13 +664,32 @@ export default function App() {
         <div style={{ flex: 1, overflowY: "auto", padding: 14 }}>
           <BannerCarousel />
           <OutletCard outlet={outlet} />
-          <div style={{
-            background: outlet.table ? GL : "#fff3e0", borderRadius: 10, padding: "10px 14px", fontSize: 13, fontWeight: 600,
-            color: outlet.table ? G : "#e65100", marginBottom: 14, display: "flex", alignItems: "center", gap: 8,
-            transition: "all .3s ease",
-          }}>
-            {outlet.table ? `🪑 Nomor Meja: ${outlet.table}` : "📷 Scan QR di meja untuk memulai pesanan"}
-          </div>
+          {outlet.table ? (
+            <div className="tap" style={{
+              background: GL, borderRadius: 14, padding: "14px 16px", marginBottom: 14,
+              border: `1.5px solid ${G}33`, display: "flex", alignItems: "center", gap: 12,
+              animation: "scaleIn .3s ease", cursor: "default",
+            }}>
+              <div style={{ width: 42, height: 42, borderRadius: 12, background: G, color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 800, fontSize: 16 }}>{outlet.table}</div>
+              <div>
+                <div style={{ fontWeight: 700, fontSize: 14, color: G }}>Meja {outlet.table}</div>
+                <div style={{ fontSize: 11, color: "#666", marginTop: 2 }}>Pesanan akan diantar ke meja ini</div>
+              </div>
+              <CheckCircle2 size={20} color={G} style={{ marginLeft: "auto" }} />
+            </div>
+          ) : (
+            <div className="tap" style={{
+              background: "linear-gradient(135deg, #fff9e6, #fff3e0)", borderRadius: 14, padding: "14px 16px", marginBottom: 14,
+              border: "1.5px dashed #ffb74d", display: "flex", alignItems: "center", gap: 12,
+              animation: "pulse 3s ease infinite", cursor: "pointer",
+            }}>
+              <div style={{ width: 42, height: 42, borderRadius: 12, background: "#ff9800", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20 }}>📷</div>
+              <div>
+                <div style={{ fontWeight: 700, fontSize: 14, color: "#e65100" }}>Scan QR di meja Anda</div>
+                <div style={{ fontSize: 11, color: "#888", marginTop: 2 }}>Arahkan kamera HP ke QR code untuk mulai pesan</div>
+              </div>
+            </div>
+          )}
 
           <RecoScroll items={recoItems} onAdd={setModalItem} />
 
