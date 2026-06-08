@@ -29,6 +29,13 @@ const SPICE_LEVELS = [
   { id: "lvl8", name: "Level 8", add: 910 },
 ];
 
+// Emoji/gambar mewakili tiap item makanan.
+const FOOD_IMG = {
+  mie_hompimpa: "🍜", mie_suit: "🍝", mie_gacoan: "🍜",
+  gacoan_combat_a: "🎁", udang_keju: "🦐", udang_rambutan: "🥟",
+  lemon_tea: "🍋", es_teh: "🍵", air_mineral: "💧",
+};
+
 const CATEGORIES = [
   {
     id: "rekomendasi",
@@ -164,7 +171,7 @@ function ProductModal({ item, onClose, onAdd }) {
         <div style={styles.modalHandle} />
         <button style={styles.modalClose} onClick={onClose}><X size={20} /></button>
         <div style={styles.modalScroll}>
-          <div style={styles.modalImg}>{item.name.split(" ")[0]}</div>
+          <div style={styles.modalImg}>{FOOD_IMG[item.id] || "🍽️"}</div>
           <h2 style={styles.modalTitle}>{item.name}</h2>
           <p style={styles.modalDesc}>{item.desc}</p>
           <div style={styles.modalPrice}>{rupiah(item.price)}</div>
@@ -465,7 +472,7 @@ export default function App() {
                 <div style={styles.catHeading}>{cat.name}</div>
                 {cat.items.map((item) => (
                   <div key={item.id} style={styles.itemCard}>
-                    <div style={styles.itemThumb}>{item.name.split(" ")[0]}</div>
+                    <div style={styles.itemThumb}>{FOOD_IMG[item.id] || "🍽️"}</div>
                     <div style={styles.itemInfo}>
                       <div style={styles.itemName}>{item.name}</div>
                       <div style={styles.itemDesc}>{item.desc}</div>
@@ -568,7 +575,7 @@ export default function App() {
             </div>
 
             <div style={styles.formCard}>
-              <div style={styles.sumRow}><span>Total Pembayaran</span><span style={{ fontWeight: 700, color: "#e8351e" }}>{rupiah(total)}</span></div>
+              <div style={styles.sumRow}><span>Total Pembayaran</span><span style={{ fontWeight: 700, color: "#2e7d32" }}>{rupiah(total)}</span></div>
             </div>
 
             <label style={styles.agreeRow}>
@@ -654,8 +661,8 @@ export default function App() {
 // ============================================================
 // STYLES
 // ============================================================
-const ORANGE = "#e8351e";
-const ORANGE2 = "#ff6b35";
+const ORANGE = "#2e7d32";
+const ORANGE2 = "#43a047";
 
 const globalCss = `
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -684,17 +691,17 @@ const styles = {
   catSection: { marginBottom: 20 },
   catHeading: { fontWeight: 800, fontSize: 16, marginBottom: 10, color: "#222" },
   itemCard: { display: "flex", gap: 12, background: "#fff", borderRadius: 12, padding: 10, marginBottom: 10, border: "1px solid #eee", alignItems: "center" },
-  itemThumb: { width: 64, height: 64, borderRadius: 10, background: `linear-gradient(135deg,#ffe0b2,${ORANGE2})`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 700, color: "#fff", flexShrink: 0, textAlign: "center", padding: 4 },
+  itemThumb: { width: 64, height: 64, borderRadius: 10, background: `linear-gradient(135deg,#c8e6c9,${ORANGE2})`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 32, flexShrink: 0, textAlign: "center" },
   itemInfo: { flex: 1, minWidth: 0 },
   itemName: { fontWeight: 700, fontSize: 14, color: "#222" },
   itemDesc: { fontSize: 11.5, color: "#888", margin: "3px 0", lineHeight: 1.4 },
   itemPrice: { fontWeight: 700, fontSize: 14, color: ORANGE, marginTop: 4 },
   addItemBtn: { background: "#fff", border: `1.5px solid ${ORANGE}`, color: ORANGE, fontWeight: 700, borderRadius: 8, padding: "8px 16px", cursor: "pointer", fontSize: 13, alignSelf: "center" },
-  cartFab: { position: "absolute", bottom: 16, left: 14, right: 14, background: ORANGE, color: "#fff", border: "none", borderRadius: 12, padding: "14px 18px", display: "flex", alignItems: "center", gap: 10, fontWeight: 700, fontSize: 15, cursor: "pointer", boxShadow: "0 6px 20px rgba(232,53,30,.4)" },
+  cartFab: { position: "absolute", bottom: 16, left: 14, right: 14, background: ORANGE, color: "#fff", border: "none", borderRadius: 12, padding: "14px 18px", display: "flex", alignItems: "center", gap: 10, fontWeight: 700, fontSize: 15, cursor: "pointer", boxShadow: "0 6px 20px rgba(46,125,50,.4)" },
   cartFabPrice: { marginLeft: "auto" },
   subHeader: { display: "flex", alignItems: "center", justifyContent: "space-between", padding: "14px 16px", background: "#fff", borderBottom: "1px solid #eee", flexShrink: 0 },
   subTitle: { fontWeight: 700, fontSize: 16 },
-  orderTypeTag: { background: "#fff3e0", color: ORANGE, borderRadius: 8, padding: "8px 12px", fontSize: 13, fontWeight: 600, marginBottom: 12 },
+  orderTypeTag: { background: "#e8f5e9", color: ORANGE, borderRadius: 8, padding: "8px 12px", fontSize: 13, fontWeight: 600, marginBottom: 12 },
   empty: { textAlign: "center", color: "#aaa", padding: 40 },
   cartItem: { display: "flex", gap: 10, background: "#fff", borderRadius: 12, padding: 12, marginBottom: 10, border: "1px solid #eee" },
   noteTag: { fontSize: 11, color: "#999", fontStyle: "italic", marginTop: 2 },
@@ -710,7 +717,7 @@ const styles = {
   input: { width: "100%", padding: "11px 12px", borderRadius: 8, border: "1px solid #ddd", fontSize: 14, marginBottom: 8, outline: "none" },
   payTabs: { display: "flex", gap: 8, marginBottom: 10 },
   payTab: { flex: 1, padding: "10px", borderRadius: 8, border: "1px solid #ddd", background: "#fff", fontSize: 13, cursor: "pointer", color: "#555" },
-  payTabActive: { background: "#fff3e0", borderColor: ORANGE, color: ORANGE, fontWeight: 700 },
+  payTabActive: { background: "#e8f5e9", borderColor: ORANGE, color: ORANGE, fontWeight: 700 },
   agreeRow: { display: "flex", gap: 8, alignItems: "flex-start", fontSize: 12.5, color: "#666", padding: "4px 2px", lineHeight: 1.4 },
   // modal
   modalOverlay: { position: "absolute", inset: 0, background: "rgba(0,0,0,.5)", display: "flex", alignItems: "flex-end", zIndex: 50 },
@@ -718,13 +725,13 @@ const styles = {
   modalHandle: { width: 40, height: 4, background: "#ddd", borderRadius: 4, margin: "10px auto 0" },
   modalClose: { position: "absolute", top: 12, right: 12, background: "#f0f0f0", border: "none", borderRadius: "50%", width: 30, height: 30, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", zIndex: 2 },
   modalScroll: { overflowY: "auto", padding: "10px 18px" },
-  modalImg: { width: "100%", height: 130, borderRadius: 14, background: `linear-gradient(135deg,#ffe0b2,${ORANGE2})`, display: "flex", alignItems: "center", justifyContent: "center", color: "#fff", fontWeight: 800, fontSize: 22, marginBottom: 12 },
+  modalImg: { width: "100%", height: 130, borderRadius: 14, background: `linear-gradient(135deg,#c8e6c9,${ORANGE2})`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 56, marginBottom: 12 },
   modalTitle: { fontSize: 19, fontWeight: 800, margin: 0 },
   modalDesc: { fontSize: 13, color: "#888", margin: "6px 0", lineHeight: 1.4 },
   modalPrice: { fontSize: 17, fontWeight: 800, color: ORANGE, marginBottom: 8 },
   group: { borderTop: "8px solid #f5f5f5", margin: "0 -18px", padding: "14px 18px" },
   groupTitle: { fontWeight: 700, fontSize: 13.5, marginBottom: 10, display: "flex", justifyContent: "space-between", alignItems: "center" },
-  required: { fontSize: 11, fontWeight: 600, color: ORANGE, background: "#fff3e0", padding: "2px 8px", borderRadius: 6 },
+  required: { fontSize: 11, fontWeight: 600, color: ORANGE, background: "#e8f5e9", padding: "2px 8px", borderRadius: 6 },
   optRow: { display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 0", fontSize: 14, cursor: "pointer", borderBottom: "1px solid #f5f5f5" },
   optAdd: { color: ORANGE, fontSize: 12.5, fontWeight: 600 },
   radio: { width: 18, height: 18, accentColor: ORANGE },
@@ -736,7 +743,7 @@ const styles = {
   addBtn: { flex: 1, background: ORANGE, color: "#fff", border: "none", borderRadius: 10, padding: 14, fontWeight: 700, fontSize: 14.5, cursor: "pointer" },
   addBtnDisabled: { background: "#ccc", cursor: "not-allowed" },
   // qris
-  qrisTimer: { background: "#fff3e0", color: ORANGE, fontWeight: 700, borderRadius: 8, padding: "10px", fontSize: 14, marginBottom: 16 },
+  qrisTimer: { background: "#e8f5e9", color: ORANGE, fontWeight: 700, borderRadius: 8, padding: "10px", fontSize: 14, marginBottom: 16 },
   qrisCard: { background: "#fff", borderRadius: 16, padding: 20, border: "1px solid #eee", display: "inline-block", width: "100%" },
   qrisMerchant: { fontWeight: 700, fontSize: 13, color: "#333", marginBottom: 14 },
   qrFake: { width: 180, height: 180, margin: "0 auto", display: "grid", gridTemplateColumns: "repeat(10,1fr)", gridTemplateRows: "repeat(10,1fr)", border: "6px solid #fff", boxShadow: "0 0 0 1px #ddd" },
@@ -747,7 +754,7 @@ const styles = {
   qrisHint: { fontSize: 12, color: "#999", marginTop: 16, lineHeight: 1.5, textAlign: "left", background: "#f7f7f7", padding: 12, borderRadius: 10 },
   // success
   successWrap: { flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 30, textAlign: "center" },
-  successTitle: { fontSize: 22, fontWeight: 800, marginTop: 16 },
+  successTitle: { fontSize: 22, fontWeight: 800, marginTop: 16, color: "#2e7d32" },
   successSub: { fontSize: 13.5, color: "#777", marginTop: 6, lineHeight: 1.5 },
   queueBox: { background: ORANGE, color: "#fff", borderRadius: 16, padding: "20px 40px", margin: "24px 0" },
   queueLabel: { fontSize: 13, opacity: 0.9 },
