@@ -29,11 +29,17 @@ const SPICE_LEVELS = [
   { id: "lvl8", name: "Level 8", add: 910 },
 ];
 
-// Emoji/gambar mewakili tiap item makanan.
+// Foto makanan asli (Unsplash, free to use).
 const FOOD_IMG = {
-  mie_hompimpa: "🍜", mie_suit: "🍝", mie_gacoan: "🍜",
-  gacoan_combat_a: "🎁", udang_keju: "🦐", udang_rambutan: "🥟",
-  lemon_tea: "🍋", es_teh: "🍵", air_mineral: "💧",
+  mie_hompimpa: "https://images.unsplash.com/photo-1612929633738-8fe44f7ec841?w=200&h=200&fit=crop",
+  mie_suit: "https://images.unsplash.com/photo-1569718212165-3a8278d5f624?w=200&h=200&fit=crop",
+  mie_gacoan: "https://images.unsplash.com/photo-1555126634-323283e090fa?w=200&h=200&fit=crop",
+  gacoan_combat_a: "https://images.unsplash.com/photo-1617093727343-374698b1b08d?w=200&h=200&fit=crop",
+  udang_keju: "https://images.unsplash.com/photo-1496116218417-1a781b1c416c?w=200&h=200&fit=crop",
+  udang_rambutan: "https://images.unsplash.com/photo-1563245372-f21724e3856d?w=200&h=200&fit=crop",
+  lemon_tea: "https://images.unsplash.com/photo-1556679343-c7306c1976bc?w=200&h=200&fit=crop",
+  es_teh: "https://images.unsplash.com/photo-1558160074-4d7d8bdf4256?w=200&h=200&fit=crop",
+  air_mineral: "https://images.unsplash.com/photo-1548839140-29a749e1cf4d?w=200&h=200&fit=crop",
 };
 
 const CATEGORIES = [
@@ -171,7 +177,7 @@ function ProductModal({ item, onClose, onAdd }) {
         <div style={styles.modalHandle} />
         <button style={styles.modalClose} onClick={onClose}><X size={20} /></button>
         <div style={styles.modalScroll}>
-          <div style={styles.modalImg}>{FOOD_IMG[item.id] || "🍽️"}</div>
+          <div style={styles.modalImg}><img src={FOOD_IMG[item.id] || ""} alt={item.name} style={styles.modalImgPhoto} /></div>
           <h2 style={styles.modalTitle}>{item.name}</h2>
           <p style={styles.modalDesc}>{item.desc}</p>
           <div style={styles.modalPrice}>{rupiah(item.price)}</div>
@@ -472,7 +478,7 @@ export default function App() {
                 <div style={styles.catHeading}>{cat.name}</div>
                 {cat.items.map((item) => (
                   <div key={item.id} style={styles.itemCard}>
-                    <div style={styles.itemThumb}>{FOOD_IMG[item.id] || "🍽️"}</div>
+                    <div style={styles.itemThumb}><img src={FOOD_IMG[item.id] || ""} alt={item.name} style={styles.thumbImg} /></div>
                     <div style={styles.itemInfo}>
                       <div style={styles.itemName}>{item.name}</div>
                       <div style={styles.itemDesc}>{item.desc}</div>
@@ -691,7 +697,8 @@ const styles = {
   catSection: { marginBottom: 20 },
   catHeading: { fontWeight: 800, fontSize: 16, marginBottom: 10, color: "#222" },
   itemCard: { display: "flex", gap: 12, background: "#fff", borderRadius: 12, padding: 10, marginBottom: 10, border: "1px solid #eee", alignItems: "center" },
-  itemThumb: { width: 64, height: 64, borderRadius: 10, background: `linear-gradient(135deg,#c8e6c9,${ORANGE2})`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 32, flexShrink: 0, textAlign: "center" },
+  itemThumb: { width: 64, height: 64, borderRadius: 10, overflow: "hidden", flexShrink: 0, background: "#e8f5e9" },
+  thumbImg: { width: "100%", height: "100%", objectFit: "cover" },
   itemInfo: { flex: 1, minWidth: 0 },
   itemName: { fontWeight: 700, fontSize: 14, color: "#222" },
   itemDesc: { fontSize: 11.5, color: "#888", margin: "3px 0", lineHeight: 1.4 },
@@ -725,7 +732,8 @@ const styles = {
   modalHandle: { width: 40, height: 4, background: "#ddd", borderRadius: 4, margin: "10px auto 0" },
   modalClose: { position: "absolute", top: 12, right: 12, background: "#f0f0f0", border: "none", borderRadius: "50%", width: 30, height: 30, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", zIndex: 2 },
   modalScroll: { overflowY: "auto", padding: "10px 18px" },
-  modalImg: { width: "100%", height: 130, borderRadius: 14, background: `linear-gradient(135deg,#c8e6c9,${ORANGE2})`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 56, marginBottom: 12 },
+  modalImg: { width: "100%", height: 180, borderRadius: 14, overflow: "hidden", marginBottom: 12, background: "#e8f5e9" },
+  modalImgPhoto: { width: "100%", height: "100%", objectFit: "cover" },
   modalTitle: { fontSize: 19, fontWeight: 800, margin: 0 },
   modalDesc: { fontSize: 13, color: "#888", margin: "6px 0", lineHeight: 1.4 },
   modalPrice: { fontSize: 17, fontWeight: 800, color: ORANGE, marginBottom: 8 },
