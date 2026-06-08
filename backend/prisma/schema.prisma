@@ -1,0 +1,141 @@
+// Prisma schema — Sistem Self-Order Mie Gacoan
+// Entitas mengikuti PRD bagian 6.B
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Restaurant {
+  id         String          @id @default(uuid())
+  name       String
+  address    String
+  phone      String?
+  openHour   String          @default("10:00")
+  closeHour  String          @default("22:00")
+  tables     Table[]
+  categories MenuCategory[]
+  menuItems  MenuItem[]
+  orders     Order[]
+  createdAt  DateTime        @default(now())
+}
+
+model Table {
+  id           String     @id @default(uuid())
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id])
+  restaurantId String
+  tableNumber  Int
+  qrToken      String     @unique // token rahasia yang ditanam di URL QR
+  orders       Order[]
+
+  @@unique([restaurantId, tableNumber])
+}
+
+model MenuCategory {
+  id           String     @id @default(uuid())
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id])
+  restaurantId String
+  name         String
+  sortOrder    Int        @default(0)
+  items        MenuItem[]
+}
+
+model MenuItem {
+  id           String          @id @default(uuid())
+  restaurant   Restaurant      @relation(fields: [restaurantId], references: [id])
+  restaurantId String
+  category     MenuCategory    @relation(fields: [categoryId], references: [id])
+  categoryId   String
+  name         String
+  description  String?
+  imageUrl     String?
+  basePrice    Int             // dalam Rupiah penuh (integer, tanpa desimal)
+  isPackage    Boolean         @default(false)
+  isAvailable  Boolean         @default(true)
+  sortOrder    Int             @default(0)
+  modifierGroups ModifierGroup[]
+  orderItems   OrderItem[]
+}
+
+model ModifierGroup {
+  id            String     @id @default(uuid())
+  menuItem      MenuItem   @relation(fields: [menuItemId], references: [id])
+  menuItemId    String
+  name          String     // contoh: "LEVEL PEDAS", "Pilih Mie"
+  minSelections Int        @default(1)
+  maxSelections Int        @default(1)
+  modifiers     Modifier[]
+}
+
+model Modifier {
+  id              String   @id @default(uuid())
+  group           ModifierGroup @relation(fields: [groupId], references: [id])
+  groupId         String
+  name            String   // contoh: "Level 6", "Udang Keju"
+  additionalPrice Int      @default(0)
+  orderItemMods   OrderItemModifier[]
+}
+
+enum OrderStatus {
+  PENDING   // dibuat, menunggu pembayaran
+  PAID      // pembayaran diterima
+  KITCHEN   // diteruskan ke dapur
+  DONE      // selesai
+  CANCELLED // dibatalkan / QRIS expired
+}
+
+enum PaymentMethod {
+  QRIS
+  CASHIER
+}
+
+model Order {
+  id            String        @id @default(uuid())
+  restaurant    Restaurant    @relation(fields: [restaurantId], references: [id])
+  restaurantId  String
+  table         Table         @relation(fields: [tableId], references: [id])
+  tableId       String
+  queueNumber   String?       // contoh "A-42"
+  customerName  String
+  phone         String
+  email         String?
+  status        OrderStatus   @default(PENDING)
+  paymentMethod PaymentMethod
+  subtotal      Int
+  tax           Int
+  rounding      Int           @default(0)
+  totalAmount   Int
+  qrisPayload   String?       // string QRIS dari gateway
+  paymentRef    String?       // referensi transaksi gateway
+  expiresAt     DateTime?     // batas waktu pembayaran QRIS
+  paidAt        DateTime?
+  items         OrderItem[]
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+}
+
+model OrderItem {
+  id          String   @id @default(uuid())
+  order       Order    @relation(fields: [orderId], references: [id])
+  orderId     String
+  menuItem    MenuItem @relation(fields: [menuItemId], references: [id])
+  menuItemId  String
+  quantity    Int
+  notes       String?
+  unitPrice   Int      // harga satuan termasuk modifier
+  totalPrice  Int      // unitPrice * quantity
+  modifiers   OrderItemModifier[]
+}
+
+model OrderItemModifier {
+  id          String    @id @default(uuid())
+  orderItem   OrderItem @relation(fields: [orderItemId], references: [id])
+  orderItemId String
+  modifier    Modifier  @relation(fields: [modifierId], references: [id])
+  modifierId  String
+  priceAtOrder Int      @default(0)
+}

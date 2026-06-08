@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Admin Panel — Mie Gacoan</title>
+<style>
+  :root { --accent: #e8351e; --bg: #f5f6f8; --card: #fff; --text: #1a1a1a; --muted: #888; --green: #1aa260; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'Segoe UI', system-ui, sans-serif; }
+  header { background: var(--accent); color: #fff; padding: 18px 28px; }
+  header h1 { font-size: 22px; }
+  .config { padding: 14px 28px; background: var(--card); display: flex; gap: 10px; align-items: center; border-bottom: 1px solid #eee; flex-wrap: wrap; }
+  .config input { padding: 8px 12px; border-radius: 8px; border: 1px solid #ddd; font-size: 13px; }
+  .config input#resto-id { flex: 1; min-width: 280px; }
+  .config button { padding: 8px 18px; border: none; border-radius: 8px; background: var(--accent); color: #fff; font-weight: 600; cursor: pointer; }
+  .wrap { padding: 28px; max-width: 1100px; margin: 0 auto; }
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 28px; }
+  .stat { background: var(--card); border-radius: 12px; padding: 20px; border: 1px solid #eee; }
+  .stat .label { font-size: 13px; color: var(--muted); }
+  .stat .value { font-size: 26px; font-weight: 800; margin-top: 6px; color: var(--accent); }
+  .tabs { display: flex; gap: 8px; margin-bottom: 18px; }
+  .tab { padding: 9px 20px; border-radius: 20px; border: 1px solid #ddd; background: var(--card); cursor: pointer; font-size: 14px; }
+  .tab.active { background: var(--accent); color: #fff; border-color: var(--accent); font-weight: 600; }
+  .panel { background: var(--card); border-radius: 12px; border: 1px solid #eee; overflow: hidden; }
+  table { width: 100%; border-collapse: collapse; }
+  th, td { padding: 12px 16px; text-align: left; font-size: 14px; border-bottom: 1px solid #f0f0f0; }
+  th { background: #fafafa; font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: .5px; }
+  .badge { padding: 3px 10px; border-radius: 12px; font-size: 12px; font-weight: 600; }
+  .b-PENDING { background: #fff3e0; color: #f5a623; }
+  .b-KITCHEN { background: #e3f2fd; color: #1976d2; }
+  .b-DONE { background: #e8f5e9; color: var(--green); }
+  .b-CANCELLED { background: #fce4ec; color: #c62828; }
+  .b-PAID { background: #e8f5e9; color: var(--green); }
+  .toggle { cursor: pointer; padding: 5px 12px; border-radius: 8px; border: none; font-size: 12px; font-weight: 600; color: #fff; }
+  .toggle.on { background: var(--green); }
+  .toggle.off { background: #bbb; }
+  .price-input { width: 90px; padding: 5px 8px; border: 1px solid #ddd; border-radius: 6px; font-size: 13px; }
+  .hidden { display: none; }
+  .empty { padding: 40px; text-align: center; color: var(--muted); }
+</style>
+</head>
+<body>
+  <header><h1>🍜 Mie Gacoan · Admin Panel</h1></header>
+  <div class="config">
+    <input id="resto-id" placeholder="Tempel restaurant ID dari hasil seed" />
+    <input id="api-url" value="http://localhost:4000" style="width:200px" />
+    <button onclick="start()">Muat Data</button>
+  </div>
+
+  <div class="wrap">
+    <div class="stats" id="stats"></div>
+    <div class="tabs">
+      <div class="tab active" onclick="switchTab('orders', this)">Pesanan</div>
+      <div class="tab" onclick="switchTab('menu', this)">Kelola Menu</div>
+    </div>
+    <div class="panel" id="panel-orders"><div class="empty">Muat data untuk melihat pesanan.</div></div>
+    <div class="panel hidden" id="panel-menu"><div class="empty">Muat data untuk mengelola menu.</div></div>
+  </div>
+
+<script>
+  let API = "http://localhost:4000";
+  let RESTO = "";
+
+  const rupiah = n => "Rp" + Number(n).toLocaleString("id-ID");
+
+  async function loadStats() {
+    const res = await fetch(`${API}/api/v1/admin/stats?restaurantId=${RESTO}`);
+    const s = await res.json();
+    document.getElementById("stats").innerHTML = `
+      <div class="stat"><div class="label">Pendapatan Hari Ini</div><div class="value">${rupiah(s.todayRevenue)}</div></div>
+      <div class="stat"><div class="label">Pesanan Dibayar</div><div class="value">${s.paidOrders}</div></div>
+      <div class="stat"><div class="label">Total Pesanan</div><div class="value">${s.totalOrders}</div></div>
+      <div class="stat"><div class="label">Rata-rata / Pesanan</div><div class="value">${rupiah(s.avgOrderValue)}</div></div>`;
+  }
+
+  async function loadOrders() {
+    const res = await fetch(`${API}/api/v1/admin/orders?restaurantId=${RESTO}`);
+    const { orders } = await res.json();
+    const panel = document.getElementById("panel-orders");
+    if (!orders.length) { panel.innerHTML = '<div class="empty">Belum ada pesanan.</div>'; return; }
+    panel.innerHTML = `<table>
+      <tr><th>Antrean</th><th>Meja</th><th>Pelanggan</th><th>Bayar</th><th>Total</th><th>Status</th><th>Waktu</th></tr>
+      ${orders.map(o => `<tr>
+        <td><b>${o.queueNumber || '—'}</b></td>
+        <td>${o.tableNumber}</td>
+        <td>${o.customerName}</td>
+        <td>${o.paymentMethod}</td>
+        <td>${rupiah(o.totalAmount)}</td>
+        <td><span class="badge b-${o.status}">${o.status}</span></td>
+        <td>${new Date(o.createdAt).toLocaleTimeString('id-ID', {hour:'2-digit',minute:'2-digit'})}</td>
+      </tr>`).join('')}
+    </table>`;
+  }
+
+  async function loadMenu() {
+    const res = await fetch(`${API}/api/v1/admin/menu?restaurantId=${RESTO}`);
+    const { items } = await res.json();
+    const panel = document.getElementById("panel-menu");
+    if (!items.length) { panel.innerHTML = '<div class="empty">Belum ada menu.</div>'; return; }
+    panel.innerHTML = `<table>
+      <tr><th>Nama</th><th>Kategori</th><th>Harga</th><th>Tersedia</th></tr>
+      ${items.map(i => `<tr>
+        <td><b>${i.name}</b>${i.isPackage ? ' 📦' : ''}</td>
+        <td>${i.category}</td>
+        <td><input class="price-input" type="number" value="${i.basePrice}" onchange="updatePrice('${i.id}', this.value)" /></td>
+        <td><button class="toggle ${i.isAvailable ? 'on' : 'off'}" onclick="toggleAvail('${i.id}', ${!i.isAvailable}, this)">${i.isAvailable ? 'Tersedia' : 'Habis'}</button></td>
+      </tr>`).join('')}
+    </table>`;
+  }
+
+  async function updatePrice(id, val) {
+    await fetch(`${API}/api/v1/admin/menu/${id}/price`, {
+      method: "PATCH", headers: {"Content-Type":"application/json"},
+      body: JSON.stringify({ basePrice: parseInt(val,10) })
+    });
+  }
+
+  async function toggleAvail(id, next, btn) {
+    await fetch(`${API}/api/v1/admin/menu/${id}/availability`, {
+      method: "PATCH", headers: {"Content-Type":"application/json"},
+      body: JSON.stringify({ isAvailable: next })
+    });
+    btn.className = "toggle " + (next ? "on" : "off");
+    btn.textContent = next ? "Tersedia" : "Habis";
+    btn.setAttribute("onclick", `toggleAvail('${id}', ${!next}, this)`);
+  }
+
+  function switchTab(name, el) {
+    document.querySelectorAll(".tab").forEach(t => t.classList.remove("active"));
+    el.classList.add("active");
+    document.getElementById("panel-orders").classList.toggle("hidden", name !== "orders");
+    document.getElementById("panel-menu").classList.toggle("hidden", name !== "menu");
+  }
+
+  function start() {
+    RESTO = document.getElementById("resto-id").value.trim();
+    API = document.getElementById("api-url").value.trim() || API;
+    if (!RESTO) return alert("Isi Restaurant ID dulu.");
+    loadStats(); loadOrders(); loadMenu();
+    setInterval(() => { loadStats(); loadOrders(); }, 10000);
+  }
+</script>
+</body>
+</html>
