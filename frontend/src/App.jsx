@@ -16,7 +16,7 @@ const OUTLET = {
   name: "Mie Gacoan - Mojokerto",
   address: "Jl. Mojopahit No. 91, Mojokerto",
   hours: "10.00 - 22.00 WIB",
-  table: 91,
+  table: null, // didapat dari scan QR, bukan hardcode
 };
 
 const SPICE_LEVELS = [
@@ -455,7 +455,7 @@ export default function App() {
               <div style={styles.outletRow}><Clock size={13} /> {outlet.hours}</div>
             </div>
 
-            <div style={styles.tableTag}>Nomor Meja: {outlet.table}</div>
+            <div style={styles.tableTag}>{outlet.table ? `Nomor Meja: ${outlet.table}` : "📷 Scan QR di meja untuk memulai pesanan"}</div>
 
             {/* tab kategori */}
             <div style={styles.catTabs}>
@@ -511,7 +511,7 @@ export default function App() {
             <div style={{ width: 22 }} />
           </div>
           <div style={styles.scroll}>
-            <div style={styles.orderTypeTag}>Makan di tempat · Meja {outlet.table}</div>
+            <div style={styles.orderTypeTag}>Makan di tempat{outlet.table ? ` · Meja ${outlet.table}` : ""}</div>
             {cart.length === 0 && <div style={styles.empty}>Keranjang kosong</div>}
             {cart.map((line) => (
               <div key={line.lineId} style={styles.cartItem}>
@@ -563,7 +563,7 @@ export default function App() {
               <input style={styles.input} placeholder="Nama Lengkap *" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
               <input style={styles.input} placeholder="Nomor Ponsel *" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
               <input style={styles.input} placeholder="Email (kirim struk, opsional)" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
-              <input style={{ ...styles.input, background: "#f0f0f0", color: "#888" }} value={`Nomor Meja: ${outlet.table}`} readOnly />
+              <input style={{ ...styles.input, background: "#f0f0f0", color: "#888" }} value={outlet.table ? `Nomor Meja: ${outlet.table}` : "Nomor meja dari scan QR"} readOnly />
             </div>
 
             <div style={styles.formCard}>
@@ -645,7 +645,7 @@ export default function App() {
             <div style={styles.queueLabel}>Nomor Antrean</div>
             <div style={styles.queueNum}>A-{String(Math.floor(Math.random() * 90) + 10)}</div>
           </div>
-          <div style={styles.successSub}>Meja {outlet.table} · Total {rupiah(total)}</div>
+          <div style={styles.successSub}>{outlet.table ? `Meja ${outlet.table} · ` : ""}Total {rupiah(total)}</div>
           <button style={styles.bottomBtnStatic} onClick={resetAll}>Pesan Lagi</button>
         </div>
       )}
