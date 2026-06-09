@@ -108,7 +108,7 @@ body{background:#1a1a1a;font-family:'Poppins',sans-serif}
 @keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
 @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 @keyframes scaleIn{from{transform:scale(.95);opacity:0}to{transform:scale(1);opacity:1}}
-@keyframes slideLeft{from{transform:translateX(100%)}to{transform:translateX(0)}}
+@keyframes slideLeft{from{transform:translateX(-100%)}to{transform:translateX(0)}}
 @keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
 .tap{transition:transform .12s ease,box-shadow .12s ease}
 .tap:active{transform:scale(.96)!important;box-shadow:none!important}
@@ -550,7 +550,7 @@ export default function App() {
 
   const isLive = api.hasSession;
   const [categories, setCategories] = useState(CATEGORIES);
-  const [outlet, setOutlet] = useState(OUTLET);
+  const [outlet, setOutlet] = useState({ ...OUTLET, table: api.tableNumber || OUTLET.table });
   const [activeCat, setActiveCat] = useState(CATEGORIES[0].id);
   const [orderId, setOrderId] = useState(null);
   const [qrisPayload, setQrisPayload] = useState(null);
