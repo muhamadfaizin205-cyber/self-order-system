@@ -392,12 +392,13 @@ function SideDrawer({ open, onClose }) {
   };
 
   return (
-    <div style={{ position: "absolute", inset: 0, zIndex: 60 }} onClick={close}>
-      <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,.45)" }} />
+    <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, zIndex: 9999 }} onClick={close}>
+      <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, background: "rgba(0,0,0,.5)" }} />
       <div onClick={e => e.stopPropagation()} style={{
-        position: "absolute", top: 0, left: 0, bottom: 0, width: "80%", maxWidth: 330,
-        background: "#fff", animation: "slideLeft .25s ease", boxShadow: "4px 0 20px rgba(0,0,0,.15)",
+        position: "fixed", top: 0, left: 0, bottom: 0, width: "80%", maxWidth: 330,
+        background: "#fff", boxShadow: "4px 0 24px rgba(0,0,0,.2)",
         display: "flex", flexDirection: "column", overflow: "hidden",
+        zIndex: 10000,
       }}>
         {drawerContent()}
       </div>
