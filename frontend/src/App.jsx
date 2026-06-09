@@ -244,6 +244,7 @@ function RecoScroll({ items, onAdd }) {
 function SideDrawer({ open, onClose }) {
   const [subView, setSubView] = useState(null); // null | "history" | "language" | "help" | "privacy"
   const [lang, setLang] = useState("id");
+  const [faqOpen, setFaqOpen] = useState(null);
 
   if (!open) return null;
 
@@ -265,8 +266,6 @@ function SideDrawer({ open, onClose }) {
     { q: "Pesanan salah, bagaimana?", a: "Hubungi staf restoran terdekat. Mereka akan membantu mengubah atau membatalkan pesanan Anda." },
     { q: "QRIS saya gagal/expired?", a: "QRIS berlaku 10 menit. Jika expired, Anda bisa membuat pesanan baru. Tidak ada uang yang terpotong jika belum bayar." },
   ];
-
-  const [faqOpen, setFaqOpen] = useState(null);
 
   const drawerContent = () => {
     if (subView === "history") return (
