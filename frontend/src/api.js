@@ -8,7 +8,21 @@ function getQrParams() {
   return { restaurantId: p.get("restaurant"), token: p.get("token") };
 }
 
+// Decode JWT payload tanpa verifikasi signature (untuk baca nomor meja dari URL).
+// Aman untuk tampilan saja — backend tetap memverifikasi token saat checkout.
+function decodeTokenPayload(token) {
+  try {
+    const parts = token.split(".");
+    if (parts.length !== 3) return null;
+    const payload = parts[1].replace(/-/g, "+").replace(/_/g, "/");
+    return JSON.parse(atob(payload));
+  } catch (e) {
+    return null;
+  }
+}
+
 const { restaurantId, token } = getQrParams();
+const tokenData = token ? decodeTokenPayload(token) : null;
 
 async function request(path, { method = "GET", body, auth = false } = {}) {
   const headers = { "Content-Type": "application/json" };
@@ -26,6 +40,8 @@ async function request(path, { method = "GET", body, auth = false } = {}) {
 export const api = {
   restaurantId,
   hasSession: Boolean(restaurantId && token),
+  // Nomor meja yang dibaca langsung dari JWT (tanpa perlu backend).
+  tableNumber: tokenData?.tableNumber || null,
   validateTable: () => request("/tables/validate", { auth: true }),
   getMenu: () => request(`/restaurants/${restaurantId}/menu`),
   calculateCart: (items) => request("/cart/calculate", { method: "POST", body: { items } }),
