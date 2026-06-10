@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dapur — Mie 99</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<style>
+:root{--bg:#0f1115;--card:#1a1d24;--accent:#25a550;--green:#1aa260;--amber:#f5a623;--text:#e8eaed;--muted:#8a8f98}
+*{box-sizing:border-box;margin:0;padding:0}body{background:var(--bg);color:var(--text);font-family:'Poppins',sans-serif;min-height:100vh}
+header{display:flex;align-items:center;justify-content:space-between;padding:16px 24px;background:var(--card);border-bottom:2px solid var(--accent);position:sticky;top:0;z-index:10}
+header h1{font-size:22px;font-weight:800;letter-spacing:-.5px}header h1 span{color:var(--accent)}
+.status{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted)}
+.dot{width:10px;height:10px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;padding:24px}
+.ticket{background:var(--card);border-radius:12px;overflow:hidden;border-left:5px solid var(--amber);animation:pop .3s ease}
+@keyframes pop{from{transform:scale(.96);opacity:0}to{transform:scale(1);opacity:1}}
+.ticket-head{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;background:rgba(255,255,255,.04)}
+.queue{font-size:24px;font-weight:800;color:var(--accent)}.table-no{font-size:13px;color:var(--muted)}
+.timer{font-size:13px;font-weight:600;color:var(--amber)}
+.ticket-body{padding:12px 16px}
+.line{padding:8px 0;border-bottom:1px solid rgba(255,255,255,.06)}.line:last-child{border-bottom:none}
+.line-name{font-size:16px;font-weight:600}.line-qty{color:var(--accent);font-weight:800;margin-right:6px}
+.mods{font-size:13px;color:var(--muted);margin-top:3px}.note{font-size:13px;color:var(--amber);font-style:italic;margin-top:3px}
+.done-btn{width:100%;padding:14px;border:none;background:var(--green);color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit}
+.done-btn:hover{filter:brightness(1.1)}.done-btn:active{transform:scale(.98)}
+.empty{grid-column:1/-1;text-align:center;padding:80px;color:var(--muted);font-size:18px}
+@media(max-width:600px){.grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header>
+  <h1>🍜 Mie 99 <span>· Dapur</span></h1>
+  <div class="status"><span class="dot"></span><span>Real-time aktif</span></div>
+</header>
+<div class="grid" id="grid"><div class="empty">Memuat pesanan...</div></div>
+
+<script>
+const SB_URL="https://lhcbbupqhpljhtcdrloy.supabase.co";
+const SB_KEY="sb_publishable_uc3y6YCR6wSKCCEajArRgQ_U-1g0f_q";
+const RID="11111111-1111-1111-1111-111111111111";
+const sb=window.supabase.createClient(SB_URL,SB_KEY);
+
+function fmtTimer(c){const m=Math.floor((Date.now()-new Date(c))/60000);return m<=0?"baru":m+" menit lalu";}
+
+async function load(){
+  const{data}=await sb.from("orders").select("*,tables(table_number),order_items(*,menu_items(name),order_item_modifiers(*,modifiers(name)))").eq("restaurant_id",RID).in("status",["KITCHEN","PAID"]).order("created_at",{ascending:true});
+  const grid=document.getElementById("grid");
+  if(!data||!data.length){grid.innerHTML='<div class="empty">Tidak ada pesanan aktif. Menunggu...</div>';return;}
+  grid.innerHTML=data.map(o=>{
+    const items=(o.order_items||[]).map(i=>({name:i.menu_items?.name,qty:i.quantity,notes:i.notes,mods:(i.order_item_modifiers||[]).map(m=>m.modifiers?.name).filter(Boolean).join(", ")}));
+    return`<div class="ticket"><div class="ticket-head"><div><div class="queue">${o.queue_number||"—"}</div><div class="table-no">Meja ${o.tables?.table_number||"?"} · ${o.customer_name}</div></div><div class="timer">${fmtTimer(o.created_at)}</div></div><div class="ticket-body">${items.map(i=>`<div class="line"><div class="line-name"><span class="line-qty">${i.qty}×</span>${i.name||"Item"}</div>${i.mods?`<div class="mods">${i.mods}</div>`:""}${i.notes?`<div class="note">📝 ${i.notes}</div>`:""}</div>`).join("")}</div><button class="done-btn" onclick="done('${o.id}')">✓ Selesai</button></div>`;
+  }).join("");
+}
+
+async function done(id){await sb.from("orders").update({status:"DONE"}).eq("id",id);load();}
+
+sb.channel("kitchen-rt").on("postgres_changes",{event:"*",schema:"public",table:"orders"},()=>load()).subscribe();
+
+load();setInterval(load,15000);
+</script>
+</body>
+</html>
