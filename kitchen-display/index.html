@@ -1,182 +1,64 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Kitchen Display — Mie Gacoan</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dapur — Mie 99</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <style>
-  :root {
-    --bg: #0f1115;
-    --card: #1a1d24;
-    --accent: #ff6b35;
-    --green: #1aa260;
-    --amber: #f5a623;
-    --text: #e8eaed;
-    --muted: #8a8f98;
-  }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body {
-    background: var(--bg); color: var(--text);
-    font-family: 'Segoe UI', system-ui, sans-serif;
-    min-height: 100vh;
-  }
-  header {
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 16px 24px; background: var(--card);
-    border-bottom: 2px solid var(--accent);
-    position: sticky; top: 0; z-index: 10;
-  }
-  header h1 { font-size: 22px; letter-spacing: -0.5px; }
-  header h1 span { color: var(--accent); }
-  .status { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--muted); }
-  .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--muted); }
-  .dot.on { background: var(--green); box-shadow: 0 0 8px var(--green); }
-  .grid {
-    display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: 16px; padding: 24px;
-  }
-  .ticket {
-    background: var(--card); border-radius: 12px; overflow: hidden;
-    border-left: 5px solid var(--amber); animation: pop .3s ease;
-  }
-  .ticket.new { border-left-color: var(--accent); }
-  @keyframes pop { from { transform: scale(.96); opacity: 0; } to { transform: scale(1); opacity: 1; } }
-  .ticket-head {
-    display: flex; justify-content: space-between; align-items: center;
-    padding: 12px 16px; background: rgba(255,255,255,.04);
-  }
-  .queue { font-size: 24px; font-weight: 800; color: var(--accent); }
-  .table-no { font-size: 13px; color: var(--muted); }
-  .timer { font-size: 13px; font-weight: 600; color: var(--amber); }
-  .ticket-body { padding: 12px 16px; }
-  .line { padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,.06); }
-  .line:last-child { border-bottom: none; }
-  .line-name { font-size: 16px; font-weight: 600; }
-  .line-qty { color: var(--accent); font-weight: 800; margin-right: 6px; }
-  .mods { font-size: 13px; color: var(--muted); margin-top: 3px; }
-  .note { font-size: 13px; color: var(--amber); font-style: italic; margin-top: 3px; }
-  .done-btn {
-    width: 100%; padding: 14px; border: none; background: var(--green);
-    color: #fff; font-size: 15px; font-weight: 700; cursor: pointer;
-  }
-  .done-btn:hover { filter: brightness(1.1); }
-  .empty { grid-column: 1/-1; text-align: center; padding: 80px; color: var(--muted); font-size: 18px; }
-  .config {
-    padding: 12px 24px; background: var(--card); display: flex; gap: 10px; align-items: center;
-    border-bottom: 1px solid rgba(255,255,255,.06); font-size: 13px;
-  }
-  .config input {
-    flex: 1; max-width: 400px; padding: 8px 12px; border-radius: 8px;
-    border: 1px solid #333; background: #0f1115; color: var(--text); font-size: 13px;
-  }
-  .config button {
-    padding: 8px 16px; border: none; border-radius: 8px; background: var(--accent);
-    color: #fff; font-weight: 600; cursor: pointer;
-  }
+:root{--bg:#0f1115;--card:#1a1d24;--accent:#25a550;--green:#1aa260;--amber:#f5a623;--text:#e8eaed;--muted:#8a8f98}
+*{box-sizing:border-box;margin:0;padding:0}body{background:var(--bg);color:var(--text);font-family:'Poppins',sans-serif;min-height:100vh}
+header{display:flex;align-items:center;justify-content:space-between;padding:16px 24px;background:var(--card);border-bottom:2px solid var(--accent);position:sticky;top:0;z-index:10}
+header h1{font-size:22px;font-weight:800;letter-spacing:-.5px}header h1 span{color:var(--accent)}
+.status{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted)}
+.dot{width:10px;height:10px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;padding:24px}
+.ticket{background:var(--card);border-radius:12px;overflow:hidden;border-left:5px solid var(--amber);animation:pop .3s ease}
+@keyframes pop{from{transform:scale(.96);opacity:0}to{transform:scale(1);opacity:1}}
+.ticket-head{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;background:rgba(255,255,255,.04)}
+.queue{font-size:24px;font-weight:800;color:var(--accent)}.table-no{font-size:13px;color:var(--muted)}
+.timer{font-size:13px;font-weight:600;color:var(--amber)}
+.ticket-body{padding:12px 16px}
+.line{padding:8px 0;border-bottom:1px solid rgba(255,255,255,.06)}.line:last-child{border-bottom:none}
+.line-name{font-size:16px;font-weight:600}.line-qty{color:var(--accent);font-weight:800;margin-right:6px}
+.mods{font-size:13px;color:var(--muted);margin-top:3px}.note{font-size:13px;color:var(--amber);font-style:italic;margin-top:3px}
+.done-btn{width:100%;padding:14px;border:none;background:var(--green);color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit}
+.done-btn:hover{filter:brightness(1.1)}.done-btn:active{transform:scale(.98)}
+.empty{grid-column:1/-1;text-align:center;padding:80px;color:var(--muted);font-size:18px}
+@media(max-width:600px){.grid{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
-  <header>
-    <h1>🍜 Mie Gacoan <span>· Kitchen Display</span></h1>
-    <div class="status"><span class="dot" id="ws-dot"></span><span id="ws-text">Menghubungkan...</span></div>
-  </header>
-  <div class="config">
-    <label>Restaurant ID:</label>
-    <input id="resto-id" placeholder="Tempel restaurant ID dari hasil seed" />
-    <label>API:</label>
-    <input id="api-url" value="http://localhost:4000" style="max-width:200px" />
-    <button onclick="start()">Hubungkan</button>
-  </div>
-  <div class="grid" id="grid">
-    <div class="empty">Masukkan Restaurant ID lalu klik Hubungkan.</div>
-  </div>
+<header>
+  <h1>🍜 Mie 99 <span>· Dapur</span></h1>
+  <div class="status"><span class="dot"></span><span>Real-time aktif</span></div>
+</header>
+<div class="grid" id="grid"><div class="empty">Memuat pesanan...</div></div>
 
 <script>
-  let API = "http://localhost:4000";
-  let RESTO = "";
-  let ws = null;
-  const seen = new Set();
+const SB_URL="https://lhcbbupqhpljhtcdrloy.supabase.co";
+const SB_KEY="sb_publishable_uc3y6YCR6wSKCCEajArRgQ_U-1g0f_q";
+const RID="11111111-1111-1111-1111-111111111111";
+const sb=window.supabase.createClient(SB_URL,SB_KEY);
 
-  function fmtTimer(createdAt) {
-    const mins = Math.floor((Date.now() - new Date(createdAt)) / 60000);
-    return mins <= 0 ? "baru" : mins + " menit lalu";
-  }
+function fmtTimer(c){const m=Math.floor((Date.now()-new Date(c))/60000);return m<=0?"baru":m+" menit lalu";}
 
-  async function loadOrders() {
-    if (!RESTO) return;
-    try {
-      const res = await fetch(`${API}/api/v1/kitchen/orders?restaurantId=${RESTO}`);
-      const { orders } = await res.json();
-      render(orders || []);
-    } catch (e) {
-      console.error(e);
-    }
-  }
+async function load(){
+  const{data}=await sb.from("orders").select("*,tables(table_number),order_items(*,menu_items(name),order_item_modifiers(*,modifiers(name)))").eq("restaurant_id",RID).in("status",["KITCHEN","PAID"]).order("created_at",{ascending:true});
+  const grid=document.getElementById("grid");
+  if(!data||!data.length){grid.innerHTML='<div class="empty">Tidak ada pesanan aktif. Menunggu...</div>';return;}
+  grid.innerHTML=data.map(o=>{
+    const items=(o.order_items||[]).map(i=>({name:i.menu_items?.name,qty:i.quantity,notes:i.notes,mods:(i.order_item_modifiers||[]).map(m=>m.modifiers?.name).filter(Boolean).join(", ")}));
+    return`<div class="ticket"><div class="ticket-head"><div><div class="queue">${o.queue_number||"—"}</div><div class="table-no">Meja ${o.tables?.table_number||"?"} · ${o.customer_name}</div></div><div class="timer">${fmtTimer(o.created_at)}</div></div><div class="ticket-body">${items.map(i=>`<div class="line"><div class="line-name"><span class="line-qty">${i.qty}×</span>${i.name||"Item"}</div>${i.mods?`<div class="mods">${i.mods}</div>`:""}${i.notes?`<div class="note">📝 ${i.notes}</div>`:""}</div>`).join("")}</div><button class="done-btn" onclick="done('${o.id}')">✓ Selesai</button></div>`;
+  }).join("");
+}
 
-  function render(orders) {
-    const grid = document.getElementById("grid");
-    if (!orders.length) {
-      grid.innerHTML = '<div class="empty">Belum ada pesanan masuk. Menunggu...</div>';
-      return;
-    }
-    grid.innerHTML = orders.map(o => {
-      const isNew = !seen.has(o.id);
-      seen.add(o.id);
-      return `
-      <div class="ticket ${isNew ? 'new' : ''}">
-        <div class="ticket-head">
-          <div>
-            <div class="queue">${o.queueNumber || '—'}</div>
-            <div class="table-no">Meja ${o.tableNumber} · ${o.customerName}</div>
-          </div>
-          <div class="timer">${fmtTimer(o.createdAt)}</div>
-        </div>
-        <div class="ticket-body">
-          ${o.items.map(it => `
-            <div class="line">
-              <div class="line-name"><span class="line-qty">${it.quantity}×</span>${it.name}</div>
-              ${it.modifiers.length ? `<div class="mods">${it.modifiers.join(', ')}</div>` : ''}
-              ${it.notes ? `<div class="note">📝 ${it.notes}</div>` : ''}
-            </div>`).join('')}
-        </div>
-        <button class="done-btn" onclick="markDone('${o.id}')">✓ Selesai</button>
-      </div>`;
-    }).join('');
-  }
+async function done(id){await sb.from("orders").update({status:"DONE"}).eq("id",id);load();}
 
-  async function markDone(id) {
-    await fetch(`${API}/api/v1/kitchen/orders/${id}/done`, { method: "PATCH" });
-    loadOrders();
-  }
+sb.channel("kitchen-rt").on("postgres_changes",{event:"*",schema:"public",table:"orders"},()=>load()).subscribe();
 
-  function connectWs() {
-    const wsUrl = API.replace(/^http/, "ws") + "/ws";
-    ws = new WebSocket(wsUrl);
-    ws.onopen = () => {
-      ws.send(JSON.stringify({ type: "subscribe", channel: "kitchen" }));
-      document.getElementById("ws-dot").classList.add("on");
-      document.getElementById("ws-text").textContent = "Terhubung real-time";
-    };
-    ws.onmessage = (ev) => {
-      const msg = JSON.parse(ev.data);
-      if (msg.type === "kitchen_refresh") loadOrders();
-    };
-    ws.onclose = () => {
-      document.getElementById("ws-dot").classList.remove("on");
-      document.getElementById("ws-text").textContent = "Terputus, mencoba lagi...";
-      setTimeout(connectWs, 3000);
-    };
-  }
-
-  function start() {
-    RESTO = document.getElementById("resto-id").value.trim();
-    API = document.getElementById("api-url").value.trim() || API;
-    if (!RESTO) return alert("Isi Restaurant ID dulu.");
-    seen.clear();
-    loadOrders();
-    connectWs();
-    setInterval(loadOrders, 15000); // fallback refresh
-  }
+load();setInterval(load,15000);
 </script>
 </body>
 </html>
