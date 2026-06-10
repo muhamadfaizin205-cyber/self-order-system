@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kasir — Mie 99</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<style>
+:root{--g:#1b7a3d;--g2:#25a550;--gl:#e6f4ea;--bg:#f5f6f8;--card:#fff;--text:#1a1a1a;--muted:#888;--red:#e53935;--amber:#f5a623;--blue:#1565c0}
+*{box-sizing:border-box;margin:0;padding:0}body{background:var(--bg);color:var(--text);font-family:'Poppins',sans-serif;min-height:100vh}
+.header{background:var(--g);color:#fff;padding:14px 24px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:10}
+.header h1{font-size:20px;font-weight:800}.clock{font-size:14px;font-weight:600;font-variant-numeric:tabular-nums}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;padding:20px 24px}
+.stat-card{background:var(--card);border-radius:14px;padding:16px 18px;border:1px solid #eee}
+.stat-label{font-size:12px;color:var(--muted)}.stat-value{font-size:24px;font-weight:800;margin-top:4px}
+.stat-value.green{color:var(--g)}.stat-value.blue{color:var(--blue)}
+.tabs{display:flex;gap:6px;padding:0 24px 16px}
+.tab{padding:8px 20px;border-radius:20px;border:1px solid #ddd;background:var(--card);font-size:13px;cursor:pointer;font-family:inherit;font-weight:500;transition:all .2s}
+.tab:active{transform:scale(.97)}.tab.active{background:var(--g);color:#fff;border-color:var(--g);font-weight:600}
+.tab .badge{display:inline-block;background:var(--red);color:#fff;font-size:11px;font-weight:700;padding:1px 7px;border-radius:10px;margin-left:6px}
+.tab.active .badge{background:rgba(255,255,255,.3)}.content{padding:0 24px 24px}
+.empty{text-align:center;padding:60px;color:var(--muted);font-size:15px}
+.orders-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:14px}
+.order-card{background:var(--card);border-radius:14px;border:1px solid #eee;overflow:hidden;transition:box-shadow .2s}
+.order-card:hover{box-shadow:0 4px 16px rgba(0,0,0,.06)}
+.order-head{display:flex;justify-content:space-between;align-items:center;padding:14px 16px;background:#fafafa;border-bottom:1px solid #f0f0f0}
+.order-table{font-size:22px;font-weight:800;color:var(--g)}.order-meta{text-align:right}
+.order-name{font-size:13px;font-weight:600}.order-time{font-size:11px;color:var(--muted)}
+.order-body{padding:12px 16px}.order-line{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #f8f8f8;font-size:13px}
+.order-line:last-child{border-bottom:none}.line-name{font-weight:600}.line-qty{color:var(--g);font-weight:700;margin-right:4px}
+.order-foot{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;border-top:1px solid #eee}
+.order-total{font-weight:800;font-size:18px}
+.method{font-size:11px;padding:3px 10px;border-radius:6px;font-weight:600}
+.m-QRIS{background:#e3f2fd;color:var(--blue)}.m-CASHIER{background:#fff3e0;color:#e65100}
+.order-actions{display:flex;gap:8px;padding:0 16px 14px}
+.btn{padding:10px 16px;border:none;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .15s;flex:1}
+.btn:active{transform:scale(.97)}.btn-confirm{background:var(--g);color:#fff}.btn-confirm:hover{background:var(--g2)}
+.btn-cancel{background:#fff;color:var(--red);border:1.5px solid var(--red)}.btn-print{background:var(--gl);color:var(--g)}
+.badge-status{padding:3px 10px;border-radius:8px;font-size:11px;font-weight:600;display:inline-block}
+.s-PENDING{background:#fff3e0;color:#e65100}.s-KITCHEN{background:#e3f2fd;color:var(--blue)}
+.s-DONE{background:var(--gl);color:var(--g)}.s-CANCELLED{background:#fce4ec;color:var(--red)}
+table.hist{width:100%;border-collapse:collapse;background:var(--card);border-radius:14px;overflow:hidden;border:1px solid #eee}
+table.hist th,table.hist td{padding:12px 14px;text-align:left;font-size:13px;border-bottom:1px solid #f0f0f0}
+table.hist th{background:#fafafa;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;font-weight:600}
+@media(max-width:600px){.orders-grid{grid-template-columns:1fr}.stats{grid-template-columns:repeat(2,1fr)}}
+</style>
+</head>
+<body>
+<div class="header"><h1>🍜 Mie 99 · Kasir</h1><span class="clock" id="clock">--:--:--</span></div>
+<div class="stats" id="stats"></div>
+<div class="tabs">
+  <button class="tab active" onclick="switchTab('pending',this)">Menunggu Bayar <span class="badge" id="pc">0</span></button>
+  <button class="tab" onclick="switchTab('active',this)">Di Dapur <span class="badge" id="ac">0</span></button>
+  <button class="tab" onclick="switchTab('history',this)">Riwayat</button>
+</div>
+<div class="content" id="content"><div class="empty">Memuat data...</div></div>
+
+<script>
+const SB_URL="https://lhcbbupqhpljhtcdrloy.supabase.co";
+const SB_KEY="sb_publishable_uc3y6YCR6wSKCCEajArRgQ_U-1g0f_q";
+const RID="11111111-1111-1111-1111-111111111111";
+const sb=window.supabase.createClient(SB_URL,SB_KEY);
+const rupiah=n=>"Rp"+Number(n).toLocaleString("id-ID");
+let orders=[],tab="pending";
+
+setInterval(()=>{document.getElementById("clock").textContent=new Date().toLocaleTimeString("id-ID")},1000);
+
+async function load(){
+  const{data}=await sb.from("orders").select("*,tables(table_number),order_items(*, menu_items(name), order_item_modifiers(*, modifiers(name)))").eq("restaurant_id",RID).order("created_at",{ascending:false}).limit(100);
+  orders=(data||[]).map(o=>({...o,tableNumber:o.tables?.table_number,items:(o.order_items||[]).map(i=>({name:i.menu_items?.name,quantity:i.quantity,notes:i.notes,totalPrice:i.total_price,modifiers:(i.order_item_modifiers||[]).map(m=>m.modifiers?.name).filter(Boolean).join(", ")}))}));
+  updateCounts();render();
+}
+
+async function loadStats(){
+  const today=new Date();today.setHours(0,0,0,0);
+  const{data}=await sb.from("orders").select("*").eq("restaurant_id",RID).gte("created_at",today.toISOString());
+  const paid=(data||[]).filter(o=>["PAID","KITCHEN","DONE"].includes(o.status));
+  const rev=paid.reduce((s,o)=>s+o.total_amount,0);
+  document.getElementById("stats").innerHTML=`
+    <div class="stat-card"><div class="stat-label">Pendapatan Hari Ini</div><div class="stat-value green">${rupiah(rev)}</div></div>
+    <div class="stat-card"><div class="stat-label">Pesanan Lunas</div><div class="stat-value blue">${paid.length}</div></div>
+    <div class="stat-card"><div class="stat-label">Total Pesanan</div><div class="stat-value">${(data||[]).length}</div></div>
+    <div class="stat-card"><div class="stat-label">Rata-rata</div><div class="stat-value green">${rupiah(paid.length?Math.round(rev/paid.length):0)}</div></div>`;
+}
+
+function updateCounts(){
+  document.getElementById("pc").textContent=orders.filter(o=>o.status==="PENDING").length;
+  document.getElementById("ac").textContent=orders.filter(o=>o.status==="KITCHEN"||o.status==="PAID").length;
+}
+
+function switchTab(t,btn){tab=t;document.querySelectorAll(".tab").forEach(b=>b.classList.remove("active"));btn.classList.add("active");render();}
+
+function render(){
+  const el=document.getElementById("content");
+  let list=[];
+  if(tab==="pending")list=orders.filter(o=>o.status==="PENDING");
+  else if(tab==="active")list=orders.filter(o=>o.status==="KITCHEN"||o.status==="PAID");
+  else{renderHistory(el);return;}
+  if(!list.length){el.innerHTML='<div class="empty">Tidak ada pesanan.</div>';return;}
+  el.innerHTML='<div class="orders-grid">'+list.map(o=>card(o,tab==="pending")).join("")+"</div>";
+}
+
+function card(o,showConfirm){
+  const t=new Date(o.created_at).toLocaleTimeString("id-ID",{hour:"2-digit",minute:"2-digit"});
+  const mins=Math.floor((Date.now()-new Date(o.created_at))/60000);
+  return`<div class="order-card"><div class="order-head"><div class="order-table">Meja ${o.tableNumber||"?"}</div><div class="order-meta"><div class="order-name">${o.customer_name}</div><div class="order-time">${t} · ${mins<=0?"baru":mins+" mnt"}</div></div></div><div class="order-body">${(o.items||[]).map(i=>`<div class="order-line"><div><div class="line-name"><span class="line-qty">${i.quantity}×</span>${i.name||"Item"}</div>${i.modifiers?`<div style="font-size:11px;color:var(--muted)">${i.modifiers}</div>`:""} ${i.notes?`<div style="font-size:11px;color:var(--amber);font-style:italic">📝 ${i.notes}</div>`:""}</div><div style="font-weight:600">${rupiah(i.totalPrice||0)}</div></div>`).join("")}</div><div class="order-foot"><span class="method m-${o.payment_method}">${o.payment_method==="CASHIER"?"💵 Kasir":"📱 QRIS"}</span><span class="order-total">${rupiah(o.total_amount)}</span></div><div class="order-actions">${showConfirm?`<button class="btn btn-cancel" onclick="cancelOrder('${o.id}')">Batalkan</button><button class="btn btn-confirm" onclick="confirmPay('${o.id}')">✓ Konfirmasi Bayar</button>`:`<button class="btn btn-print" onclick="printReceipt('${o.id}')">🖨️ Struk</button><button class="btn btn-confirm" onclick="markDone('${o.id}')">✓ Selesai</button>`}</div></div>`;
+}
+
+function renderHistory(el){
+  if(!orders.length){el.innerHTML='<div class="empty">Belum ada pesanan.</div>';return;}
+  el.innerHTML=`<table class="hist"><tr><th>Waktu</th><th>Meja</th><th>Pelanggan</th><th>Bayar</th><th>Total</th><th>Status</th></tr>${orders.map(o=>`<tr><td>${new Date(o.created_at).toLocaleTimeString("id-ID",{hour:"2-digit",minute:"2-digit"})}</td><td><b>${o.tableNumber||"?"}</b></td><td>${o.customer_name}</td><td><span class="method m-${o.payment_method}">${o.payment_method}</span></td><td><b>${rupiah(o.total_amount)}</b></td><td><span class="badge-status s-${o.status}">${o.status}</span></td></tr>`).join("")}</table>`;
+}
+
+async function confirmPay(id){
+  if(!confirm("Konfirmasi pembayaran?"))return;
+  const qn="A-"+String(Math.floor(Math.random()*90)+10);
+  await sb.from("orders").update({status:"KITCHEN",paid_at:new Date().toISOString(),queue_number:qn}).eq("id",id);
+  load();loadStats();
+}
+async function markDone(id){await sb.from("orders").update({status:"DONE"}).eq("id",id);load();loadStats();}
+async function cancelOrder(id){if(!confirm("Batalkan pesanan?"))return;await sb.from("orders").update({status:"CANCELLED"}).eq("id",id);load();loadStats();}
+
+function printReceipt(id){
+  const o=orders.find(x=>x.id===id);if(!o)return;
+  const w=window.open("","","width=300,height=500");
+  w.document.write(`<html><head><style>body{font-family:monospace;font-size:12px;padding:10px;width:270px}.center{text-align:center}.line{border-top:1px dashed #000;margin:8px 0}.row{display:flex;justify-content:space-between}.bold{font-weight:bold}</style></head><body><div class="center"><b>MIE 99</b><br>Jl. Pahlawan No. 99, Mojokerto</div><div class="line"></div><div class="row"><span>Meja</span><span class="bold">${o.tableNumber}</span></div><div class="row"><span>Customer</span><span>${o.customer_name}</span></div><div class="row"><span>Waktu</span><span>${new Date(o.created_at).toLocaleString("id-ID")}</span></div><div class="line"></div>${(o.items||[]).map(i=>`<div class="row"><span>${i.quantity}x ${i.name}</span><span>${rupiah(i.totalPrice)}</span></div>`).join("")}<div class="line"></div><div class="row bold"><span>TOTAL</span><span>${rupiah(o.total_amount)}</span></div><div class="line"></div><div class="center" style="margin-top:10px">Terima kasih! 🍜</div></body></html>`);
+  w.document.close();setTimeout(()=>w.print(),300);
+}
+
+// Realtime
+sb.channel("orders-rt").on("postgres_changes",{event:"*",schema:"public",table:"orders"},()=>{load();loadStats();}).subscribe();
+
+load();loadStats();setInterval(()=>{load();loadStats()},15000);
+</script>
+</body>
+</html>
