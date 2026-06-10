@@ -32,17 +32,24 @@ const SPICE_LEVELS = [
   { id: "lvl8", name: "Level 8", add: 910 },
 ];
 
-const FOOD_IMG = {
-  mie_tornado: "https://images.unsplash.com/photo-1612929633738-8fe44f7ec841?w=400&h=400&fit=crop",
-  mie_tsunami: "https://images.unsplash.com/photo-1569718212165-3a8278d5f624?w=400&h=400&fit=crop",
-  mie_99_spesial: "https://images.unsplash.com/photo-1555126634-323283e090fa?w=400&h=400&fit=crop",
-  combo_99: "https://images.unsplash.com/photo-1617093727343-374698b1b08d?w=400&h=400&fit=crop",
-  dimsum_keju: "https://images.unsplash.com/photo-1496116218417-1a781b1c416c?w=400&h=400&fit=crop",
-  dimsum_crispy: "https://images.unsplash.com/photo-1563245372-f21724e3856d?w=400&h=400&fit=crop",
-  es_jeruk: "https://images.unsplash.com/photo-1556679343-c7306c1976bc?w=400&h=400&fit=crop",
-  es_teh: "https://images.unsplash.com/photo-1558160074-4d7d8bdf4256?w=400&h=400&fit=crop",
-  air_mineral: "https://images.unsplash.com/photo-1548839140-29a749e1cf4d?w=400&h=400&fit=crop",
+const FOOD_IMG_MAP = {
+  "mie tornado": "https://images.unsplash.com/photo-1612929633738-8fe44f7ec841?w=400&h=400&fit=crop",
+  "mie tsunami": "https://images.unsplash.com/photo-1569718212165-3a8278d5f624?w=400&h=400&fit=crop",
+  "mie 99 spesial": "https://images.unsplash.com/photo-1555126634-323283e090fa?w=400&h=400&fit=crop",
+  "paket combo 99": "https://images.unsplash.com/photo-1617093727343-374698b1b08d?w=400&h=400&fit=crop",
+  "dimsum keju lumer": "https://images.unsplash.com/photo-1496116218417-1a781b1c416c?w=400&h=400&fit=crop",
+  "dimsum crispy roll": "https://images.unsplash.com/photo-1563245372-f21724e3856d?w=400&h=400&fit=crop",
+  "es jeruk peras": "https://images.unsplash.com/photo-1556679343-c7306c1976bc?w=400&h=400&fit=crop",
+  "es teh manis": "https://images.unsplash.com/photo-1558160074-4d7d8bdf4256?w=400&h=400&fit=crop",
+  "air mineral": "https://images.unsplash.com/photo-1548839140-29a749e1cf4d?w=400&h=400&fit=crop",
 };
+const DEFAULT_FOOD_IMG = "https://images.unsplash.com/photo-1569718212165-3a8278d5f624?w=400&h=400&fit=crop";
+const getImg = (item) => {
+  if (item?.image_url || item?.imageUrl) return item.image_url || item.imageUrl;
+  const key = (item?.name || "").toLowerCase().trim();
+  return FOOD_IMG_MAP[key] || DEFAULT_FOOD_IMG;
+};
+const FOOD_IMG = new Proxy({}, { get: () => DEFAULT_FOOD_IMG }); // backward compat
 
 const BANNERS = [
   "https://images.unsplash.com/photo-1626804475297-41608ea09aeb?w=800&h=400&fit=crop",
@@ -91,7 +98,7 @@ const CATEGORIES = [
 ];
 
 const ALL_ITEMS = CATEGORIES.flatMap(c => c.items);
-const rupiah = n => "Rp" + Math.round(n).toLocaleString("id-ID");
+const rupiah = n => "Rp" + Math.round(Number(n) || 0).toLocaleString("id-ID");
 const G = "#1b7a3d";
 const G2 = "#25a550";
 const GL = "#e6f4ea";
@@ -215,7 +222,7 @@ function RecoScroll({ items, onAdd }) {
             border: "1px solid #eee", scrollSnapAlign: "start", animation: `fadeIn .3s ease ${i * .08}s both`,
           }}>
             <div style={{ height: 120, overflow: "hidden" }}>
-              <img src={FOOD_IMG[item.id] || ""} alt={item.name} style={{ width: "100%", height: "100%", objectFit: "cover", transition: "transform .3s ease" }}
+              <img src={getImg(item)} alt={item.name} style={{ width: "100%", height: "100%", objectFit: "cover", transition: "transform .3s ease" }}
                 onMouseOver={e => e.target.style.transform = "scale(1.08)"}
                 onMouseOut={e => e.target.style.transform = "scale(1)"} />
             </div>
@@ -462,7 +469,7 @@ function ProductModal({ item, onClose, onAdd }) {
         <button className="tap" onClick={onClose} style={{ position: "absolute", top: "auto", right: 14, marginTop: 6, width: 32, height: 32, borderRadius: "50%", border: "none", background: "#f0f0f0", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", zIndex: 2 }}><X size={18} /></button>
         <div style={{ overflowY: "auto", flex: 1 }}>
           <div style={{ height: 200, overflow: "hidden" }}>
-            <img src={FOOD_IMG[item.id] || ""} alt={item.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+            <img src={getImg(item)} alt={item.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
           </div>
           <div style={{ padding: "16px 20px" }}>
             <h2 style={{ fontSize: 20, fontWeight: 800, margin: 0 }}>{item.name}</h2>
@@ -563,16 +570,31 @@ export default function App() {
         const { restaurant, table } = await api.validateTable();
         setOutlet(o => ({ ...o, name: restaurant.name, address: restaurant.address, hours: restaurant.hours, table: table.number }));
         const { categories: cats } = await api.getMenu();
-        const mapped = cats.map(c => ({
+        const mapped = (cats || []).map(c => ({
           id: c.id, name: c.name,
-          items: c.items.map(it => ({
-            id: it.id, name: it.name, price: it.basePrice, desc: it.description || "",
-            type: it.isPackage ? "combo" : it.modifierGroups?.some(g => g.name.toUpperCase().includes("PEDAS")) ? "spicy" : "simple",
-            groups: (it.modifierGroups || []).map(g => ({ id: g.id, name: g.name, min: g.minSelections, max: g.maxSelections, options: g.modifiers.map(m => ({ id: m.id, name: m.name, add: m.additionalPrice })) })),
+          items: (c.items || []).map(it => ({
+            id: it.id,
+            name: it.name,
+            price: it.price ?? it.basePrice ?? 0,
+            desc: it.desc || it.description || "",
+            type: it.type || (it.isPackage ? "combo" : "simple"),
+            groups: (it.groups || it.modifierGroups || []).map(g => ({
+              id: g.id,
+              name: g.name,
+              min: g.min ?? g.minSelections ?? 1,
+              max: g.max ?? g.maxSelections ?? 1,
+              options: (g.options || g.modifiers || []).map(m => ({
+                id: m.id,
+                name: m.name,
+                add: m.add ?? m.additionalPrice ?? 0,
+              })),
+            })),
           })),
         }));
-        setCategories(mapped);
-        if (mapped[0]) setActiveCat(mapped[0].id);
+        if (mapped.length > 0) {
+          setCategories(mapped);
+          if (mapped[0]) setActiveCat(mapped[0].id);
+        }
       } catch (_) {}
     })();
   }, [isLive]);
@@ -716,7 +738,7 @@ export default function App() {
                   border: "1px solid #eee", alignItems: "center", cursor: "pointer", animationDelay: `${i * .05}s`,
                 }} onClick={() => setModalItem(item)}>
                   <div style={{ width: 68, height: 68, borderRadius: 12, overflow: "hidden", flexShrink: 0, background: GL }}>
-                    <img src={FOOD_IMG[item.id] || ""} alt={item.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                    <img src={getImg(item)} alt={item.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ fontWeight: 700, fontSize: 14, color: "#222" }}>{item.name}</div>
@@ -761,7 +783,7 @@ export default function App() {
           {cart.map(line => (
             <div key={line.lineId} className="cart-item-enter" style={{ display: "flex", gap: 10, background: "#fff", borderRadius: 14, padding: 14, marginBottom: 10, border: "1px solid #eee", transition: "all .2s ease" }}>
               <div style={{ width: 52, height: 52, borderRadius: 10, overflow: "hidden", flexShrink: 0 }}>
-                <img src={FOOD_IMG[line.itemId] || ""} alt={line.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                <img src={getImg({ id: line.itemId, name: line.name })} alt={line.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
               </div>
               <div style={{ flex: 1 }}>
                 <div style={{ fontWeight: 700, fontSize: 14 }}>{line.name}</div>
