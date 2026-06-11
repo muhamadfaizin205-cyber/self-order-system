@@ -156,6 +156,27 @@ tr:hover td{background:#fafbfc}
 </style>
 </head>
 <body>
+<script>
+(function(){
+  const userStr=sessionStorage.getItem("mie99_user");
+  if(!userStr){window.location.href="/login.html";return}
+  const user=JSON.parse(userStr);
+  const path=window.location.pathname;
+  const allowed={admin:["/admin.html"],kasir:["/cashier.html"],dapur:["/kitchen.html"]};
+  const userPaths=allowed[user.role]||[];
+  if(!userPaths.some(p=>path.endsWith(p))){
+    alert("Anda tidak punya akses ke halaman ini.");
+    window.location.href="/login.html";
+  }
+  window.currentUser=user;
+})();
+function logout(){
+  if(!confirm("Yakin keluar?"))return;
+  sessionStorage.removeItem("mie99_user");
+  window.location.href="/login.html";
+}
+</script>
+
 
 <button class="menu-btn" onclick="document.querySelector('.sidebar').classList.toggle('open')">☰</button>
 
@@ -178,6 +199,13 @@ tr:hover td{background:#fafbfc}
       <div class="nav-item" onclick="showPage('orders',this)"><span class="nav-icon">📋</span>Riwayat Pesanan</div>
       <div class="nav-item" onclick="showPage('reports',this)"><span class="nav-icon">📄</span>Laporan</div>
     </div>
+  <div style="padding:16px 12px;border-top:1px solid #1f2937;margin-top:auto">
+        <div id="user-info" style="padding:10px 12px;font-size:12px;color:#9ca3af">
+          <div id="user-name" style="font-weight:600;color:#fff;margin-bottom:2px"></div>
+          <div id="user-role" style="font-size:10.5px"></div>
+        </div>
+        <div class="nav-item" onclick="logout()" style="color:#ef4444"><span class="nav-icon">🚪</span>Keluar</div>
+      </div>
   </aside>
 
   <main class="main">
@@ -774,6 +802,12 @@ function printReport(){previewReport();setTimeout(()=>window.print(),200)}
 sb.channel("admin-rt").on("postgres_changes",{event:"*",schema:"public",table:"orders"},()=>loadAll()).subscribe();
 sb.channel("admin-menu-rt").on("postgres_changes",{event:"*",schema:"public",table:"menu_items"},()=>loadAll()).subscribe();
 
+
+// Tampilkan user info di sidebar
+if(window.currentUser){
+  document.getElementById("user-name").textContent=window.currentUser.fullName||window.currentUser.username;
+  document.getElementById("user-role").textContent=window.currentUser.role.toUpperCase();
+}
 loadAll();setInterval(loadAll,30000);
 </script>
 </body>
