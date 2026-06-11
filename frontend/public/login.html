@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Login Staff — Mie 99</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<style>
+:root{
+  --primary:#1b7a3d;--primary-light:#25a550;--primary-dark:#125229;
+  --bg-dark:#0f172a;--card:#fff;--text:#111827;--text-light:#6b7280;--border:#e5e7eb;
+  --danger:#ef4444;--success:#10b981;
+}
+*{box-sizing:border-box;margin:0;padding:0;font-family:'Inter',sans-serif}
+body{
+  min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;
+  background:linear-gradient(135deg,#1b7a3d 0%,#125229 100%);
+  position:relative;overflow:hidden;
+}
+body::before,body::after{
+  content:"";position:absolute;border-radius:50%;background:rgba(255,255,255,.06);pointer-events:none;
+}
+body::before{width:500px;height:500px;top:-200px;right:-200px}
+body::after{width:400px;height:400px;bottom:-150px;left:-150px}
+
+.container{position:relative;z-index:1;display:grid;grid-template-columns:1fr 1fr;max-width:900px;width:100%;background:#fff;border-radius:20px;overflow:hidden;box-shadow:0 25px 50px -12px rgba(0,0,0,.4);min-height:560px}
+@media(max-width:768px){.container{grid-template-columns:1fr;min-height:auto}}
+
+/* Left side - branding */
+.brand-side{background:linear-gradient(135deg,#125229,#1b7a3d);color:#fff;padding:48px 40px;display:flex;flex-direction:column;justify-content:space-between;position:relative;overflow:hidden}
+.brand-side::before{content:"";position:absolute;width:300px;height:300px;background:rgba(255,255,255,.04);border-radius:50%;top:-100px;right:-100px}
+.brand-side::after{content:"";position:absolute;width:200px;height:200px;background:rgba(255,255,255,.04);border-radius:50%;bottom:-50px;left:-50px}
+.brand-logo{font-size:42px;margin-bottom:12px;position:relative}
+.brand-name{font-size:32px;font-weight:800;margin-bottom:8px;position:relative}
+.brand-tag{font-size:14px;opacity:.85;margin-bottom:32px;position:relative}
+.brand-features{position:relative}
+.feature{display:flex;align-items:flex-start;gap:12px;margin-bottom:18px;font-size:13.5px}
+.feature-icon{width:32px;height:32px;background:rgba(255,255,255,.15);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:16px}
+.feature-text strong{display:block;font-weight:600;margin-bottom:2px}
+.feature-text span{opacity:.75;font-size:12px}
+.brand-foot{position:relative;font-size:11px;opacity:.6}
+
+@media(max-width:768px){.brand-side{padding:32px 24px}.brand-features{display:none}}
+
+/* Right side - form */
+.form-side{padding:48px 40px;display:flex;flex-direction:column;justify-content:center}
+@media(max-width:768px){.form-side{padding:32px 24px}}
+
+.form-head{margin-bottom:32px}
+.form-title{font-size:24px;font-weight:800;color:var(--text);margin-bottom:6px}
+.form-sub{font-size:13.5px;color:var(--text-light)}
+
+.role-tabs{display:flex;gap:8px;margin-bottom:24px;background:#f3f4f6;padding:4px;border-radius:10px}
+.role-tab{flex:1;padding:10px;text-align:center;border-radius:7px;cursor:pointer;font-size:12.5px;font-weight:600;color:var(--text-light);transition:.15s;display:flex;flex-direction:column;align-items:center;gap:4px}
+.role-tab.active{background:#fff;color:var(--primary);box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.role-icon{font-size:18px}
+
+.field{margin-bottom:18px}
+.label{display:block;font-size:12px;font-weight:600;color:var(--text);margin-bottom:6px}
+.input-wrap{position:relative}
+.input{width:100%;padding:12px 14px 12px 42px;border:1.5px solid var(--border);border-radius:10px;font-size:14px;transition:.15s;outline:none}
+.input:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(27,122,61,.1)}
+.input-icon{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--text-light);font-size:16px;pointer-events:none}
+.show-pass{position:absolute;right:14px;top:50%;transform:translateY(-50%);cursor:pointer;color:var(--text-light);font-size:13px;background:none;border:none}
+
+.btn-login{width:100%;padding:13px;background:var(--primary);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;transition:.15s;margin-top:8px}
+.btn-login:hover{background:var(--primary-light)}
+.btn-login:active{transform:scale(.98)}
+.btn-login:disabled{opacity:.6;cursor:not-allowed}
+
+.error{padding:10px 14px;background:#fee2e2;color:#991b1b;border-radius:8px;font-size:12.5px;margin-bottom:16px;display:none;align-items:center;gap:8px}
+.error.show{display:flex}
+
+.demo-info{margin-top:20px;padding:14px;background:#fef3c7;border-radius:8px;font-size:11.5px;color:#92400e;line-height:1.6}
+.demo-info strong{display:block;margin-bottom:4px;font-size:12px}
+
+.spinner-sm{display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.guest-link{text-align:center;margin-top:20px;font-size:12px;color:var(--text-light)}
+.guest-link a{color:var(--primary);font-weight:600;text-decoration:none}
+.guest-link a:hover{text-decoration:underline}
+</style>
+</head>
+<body>
+
+<div class="container">
+  <div class="brand-side">
+    <div>
+      <div class="brand-logo">🍜</div>
+      <div class="brand-name">Mie 99</div>
+      <div class="brand-tag">Sistem Manajemen Restoran</div>
+      <div class="brand-features">
+        <div class="feature">
+          <div class="feature-icon">⚡</div>
+          <div class="feature-text"><strong>Real-time</strong><span>Pesanan langsung sync ke dapur</span></div>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">📊</div>
+          <div class="feature-text"><strong>Analitik</strong><span>Laporan harian, mingguan, bulanan</span></div>
+        </div>
+        <div class="feature">
+          <div class="feature-icon">🔒</div>
+          <div class="feature-text"><strong>Multi-role</strong><span>Akses berbeda untuk setiap divisi</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="brand-foot">Mie 99 - Mojokerto · v1.0</div>
+  </div>
+
+  <div class="form-side">
+    <div class="form-head">
+      <div class="form-title">Selamat Datang 👋</div>
+      <div class="form-sub">Masuk ke sistem berdasarkan divisi Anda</div>
+    </div>
+
+    <div class="role-tabs">
+      <div class="role-tab active" data-role="admin" onclick="setRole('admin',this)">
+        <div class="role-icon">⚙️</div><div>Admin</div>
+      </div>
+      <div class="role-tab" data-role="kasir" onclick="setRole('kasir',this)">
+        <div class="role-icon">💰</div><div>Kasir</div>
+      </div>
+      <div class="role-tab" data-role="dapur" onclick="setRole('dapur',this)">
+        <div class="role-icon">🍳</div><div>Dapur</div>
+      </div>
+    </div>
+
+    <div class="error" id="error">
+      <span>⚠️</span><span id="error-msg">Username atau password salah</span>
+    </div>
+
+    <form onsubmit="login(event)">
+      <div class="field">
+        <label class="label">Username</label>
+        <div class="input-wrap">
+          <span class="input-icon">👤</span>
+          <input class="input" id="username" autocomplete="username" placeholder="Masukkan username" required>
+        </div>
+      </div>
+
+      <div class="field">
+        <label class="label">Password</label>
+        <div class="input-wrap">
+          <span class="input-icon">🔒</span>
+          <input class="input" id="password" type="password" autocomplete="current-password" placeholder="Masukkan password" required>
+          <button type="button" class="show-pass" onclick="togglePass()" id="show-pass">Tampilkan</button>
+        </div>
+      </div>
+
+      <button class="btn-login" id="btn-login" type="submit">Masuk</button>
+    </form>
+
+    <div class="demo-info">
+      <strong>📝 Akun Demo (default)</strong>
+      Admin: <code>admin / admin123</code><br>
+      Kasir: <code>kasir / kasir123</code><br>
+      Dapur: <code>dapur / dapur123</code>
+    </div>
+
+    <div class="guest-link">
+      Pelanggan? <a href="/">Scan QR code di meja</a>
+    </div>
+  </div>
+</div>
+
+<script>
+const SB_URL="https://lhcbbupqhpljhtcdrloy.supabase.co";
+const SB_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxoY2JidXBxaHBsamh0Y2RybG95Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEwMTM4MDksImV4cCI6MjA5NjU4OTgwOX0.V5SuBRkV0lTjTtC2sZ5siCXOT8Zpapv2YGKbFAgTSLs";
+const sb=window.supabase.createClient(SB_URL,SB_KEY);
+
+let selectedRole="admin";
+
+function setRole(role,el){
+  selectedRole=role;
+  document.querySelectorAll(".role-tab").forEach(t=>t.classList.remove("active"));
+  el.classList.add("active");
+  hideError();
+}
+
+function togglePass(){
+  const inp=document.getElementById("password");
+  const btn=document.getElementById("show-pass");
+  if(inp.type==="password"){inp.type="text";btn.textContent="Sembunyikan"}
+  else{inp.type="password";btn.textContent="Tampilkan"}
+}
+
+function showError(msg){
+  document.getElementById("error-msg").textContent=msg;
+  document.getElementById("error").classList.add("show");
+}
+function hideError(){document.getElementById("error").classList.remove("show")}
+
+async function login(e){
+  e.preventDefault();
+  hideError();
+  const username=document.getElementById("username").value.trim().toLowerCase();
+  const password=document.getElementById("password").value;
+  const btn=document.getElementById("btn-login");
+  btn.disabled=true;
+  btn.innerHTML='<span class="spinner-sm"></span> Memverifikasi...';
+
+  try{
+    // Cari user
+    const{data:user,error}=await sb.from("users").select("*").eq("username",username).eq("is_active",true).single();
+    if(error||!user){showError("Username tidak ditemukan");return}
+
+    // Cek password (plain text untuk simplicity - di produksi pakai hashing)
+    if(user.password!==password){showError("Password salah");return}
+
+    // Cek role
+    if(user.role!==selectedRole){showError("Akun ini tidak punya akses sebagai "+selectedRole.toUpperCase());return}
+
+    // Update last_login
+    await sb.from("users").update({last_login:new Date().toISOString()}).eq("id",user.id);
+
+    // Simpan session (sessionStorage agar logout saat tutup tab)
+    sessionStorage.setItem("mie99_user",JSON.stringify({
+      id:user.id,username:user.username,fullName:user.full_name,role:user.role,loginAt:Date.now()
+    }));
+
+    // Redirect berdasarkan role
+    const targets={admin:"/admin.html",kasir:"/cashier.html",dapur:"/kitchen.html"};
+    window.location.href=targets[user.role]||"/";
+  }catch(err){
+    console.error(err);
+    showError("Terjadi kesalahan. Coba lagi.");
+  }finally{
+    btn.disabled=false;
+    btn.textContent="Masuk";
+  }
+}
+
+// Cek apakah sudah login
+const existing=sessionStorage.getItem("mie99_user");
+if(existing){
+  try{
+    const u=JSON.parse(existing);
+    const targets={admin:"/admin.html",kasir:"/cashier.html",dapur:"/kitchen.html"};
+    if(targets[u.role])window.location.href=targets[u.role];
+  }catch(e){sessionStorage.removeItem("mie99_user")}
+}
+</script>
+</body>
+</html>
