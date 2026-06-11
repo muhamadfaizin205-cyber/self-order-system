@@ -30,9 +30,33 @@ header h1{font-size:22px;font-weight:800;letter-spacing:-.5px}header h1 span{col
 </style>
 </head>
 <body>
+<script>
+(function(){
+  const userStr=sessionStorage.getItem("mie99_user");
+  if(!userStr){window.location.href="/login.html";return}
+  const user=JSON.parse(userStr);
+  const path=window.location.pathname;
+  const allowed={admin:["/admin.html"],kasir:["/cashier.html"],dapur:["/kitchen.html"]};
+  const userPaths=allowed[user.role]||[];
+  if(!userPaths.some(p=>path.endsWith(p))){
+    alert("Anda tidak punya akses ke halaman ini.");
+    window.location.href="/login.html";
+  }
+  window.currentUser=user;
+})();
+function logout(){
+  if(!confirm("Yakin keluar?"))return;
+  sessionStorage.removeItem("mie99_user");
+  window.location.href="/login.html";
+}
+</script>
+
 <header>
   <h1>🍜 Mie 99 <span>· Dapur</span></h1>
-  <div class="status"><span class="dot"></span><span>Real-time aktif</span></div>
+  <div style="display:flex;align-items:center;gap:14px">
+    <div class="status"><span class="dot"></span><span id="user-name-k">Dapur</span></div>
+    <button onclick="logout()" style="padding:8px 16px;background:rgba(255,255,255,.1);color:#fff;border:1px solid rgba(255,255,255,.2);border-radius:8px;cursor:pointer;font-size:13px;font-family:inherit">🚪 Keluar</button>
+  </div>
 </header>
 <div class="grid" id="grid"><div class="empty">Memuat pesanan...</div></div>
 
@@ -58,6 +82,8 @@ async function done(id){await sb.from("orders").update({status:"DONE"}).eq("id",
 
 sb.channel("kitchen-rt").on("postgres_changes",{event:"*",schema:"public",table:"orders"},()=>load()).subscribe();
 
+
+if(window.currentUser)document.getElementById("user-name-k").textContent=window.currentUser.fullName||"Dapur";
 load();setInterval(load,15000);
 </script>
 </body>
