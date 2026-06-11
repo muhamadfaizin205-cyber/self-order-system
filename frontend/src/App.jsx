@@ -252,6 +252,34 @@ function SideDrawer({ open, onClose }) {
   const [subView, setSubView] = useState(null); // null | "history" | "language" | "help" | "privacy"
   const [lang, setLang] = useState("id");
   const [faqOpen, setFaqOpen] = useState(null);
+  const [fbRating, setFbRating] = useState(0);
+  const [fbCategory, setFbCategory] = useState("Pelayanan");
+  const [fbMessage, setFbMessage] = useState("");
+  const [fbSending, setFbSending] = useState(false);
+  const [fbSent, setFbSent] = useState(false);
+
+  const submitFeedback = async () => {
+    if (!fbMessage.trim()) { alert("Mohon tulis pesan Anda."); return; }
+    if (!fbRating) { alert("Mohon beri rating bintang."); return; }
+    setFbSending(true);
+    try {
+      const { supabase: sb } = await import("./supabase");
+      await sb.from("feedback").insert({
+        restaurant_id: api.restaurantId,
+        table_number: api.tableNumber,
+        customer_name: null,
+        rating: fbRating,
+        category: fbCategory,
+        message: fbMessage.trim(),
+      });
+      setFbSent(true);
+      setFbRating(0); setFbMessage(""); setFbCategory("Pelayanan");
+      setTimeout(() => setFbSent(false), 4000);
+    } catch (e) {
+      alert("Gagal kirim. Coba lagi.");
+    }
+    setFbSending(false);
+  };
 
   if (!open) return null;
 
@@ -260,6 +288,7 @@ function SideDrawer({ open, onClose }) {
 
   const menuItems = [
     { key: "history", icon: <History size={18} />, label: "Riwayat Pesanan", sub: "Lihat pesanan sebelumnya" },
+    { key: "feedback", icon: <HelpCircle size={18} />, label: "Kritik & Saran", sub: "Beri masukan untuk kami" },
     { key: "language", icon: <Globe size={18} />, label: "Bahasa", sub: lang === "id" ? "Indonesia" : "English" },
     { key: "help", icon: <HelpCircle size={18} />, label: "Bantuan", sub: "FAQ & panduan pemesanan" },
     { key: "privacy", icon: <Shield size={18} />, label: "Kebijakan Privasi", sub: "Syarat & ketentuan" },
@@ -275,6 +304,55 @@ function SideDrawer({ open, onClose }) {
   ];
 
   const drawerContent = () => {
+    if (subView === "feedback") return (
+      <div style={{ flex: 1, overflowY: "auto" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "16px 20px", borderBottom: "1px solid #eee" }}>
+          <button className="tap" onClick={back} style={{ background: "none", border: "none", cursor: "pointer", display: "flex" }}><ChevronLeft size={20} /></button>
+          <span style={{ fontWeight: 700, fontSize: 15 }}>Kritik & Saran</span>
+        </div>
+        <div style={{ padding: "20px" }}>
+          {fbSent ? (
+            <div style={{ padding: 20, background: GL, border: `1.5px solid ${G}`, borderRadius: 12, textAlign: "center" }}>
+              <CheckCircle2 size={40} color={G} style={{ marginBottom: 10 }} />
+              <div style={{ fontWeight: 700, fontSize: 15, color: G, marginBottom: 6 }}>Terima kasih!</div>
+              <div style={{ fontSize: 13, color: "#444", lineHeight: 1.5 }}>Masukan Anda sudah kami terima dan akan menjadi bahan evaluasi.</div>
+            </div>
+          ) : (
+            <>
+              <div style={{ fontSize: 13, color: "#666", marginBottom: 16, lineHeight: 1.5 }}>Bagikan pengalaman Anda. Setiap masukan membantu kami menjadi lebih baik.</div>
+
+              <div style={{ marginBottom: 18 }}>
+                <div style={{ fontSize: 12, fontWeight: 600, marginBottom: 8, color: "#333" }}>RATING ANDA</div>
+                <div style={{ display: "flex", gap: 6, justifyContent: "center" }}>
+                  {[1, 2, 3, 4, 5].map(n => (
+                    <button key={n} onClick={() => setFbRating(n)} style={{ background: "none", border: "none", cursor: "pointer", fontSize: 32, color: n <= fbRating ? "#f59e0b" : "#ddd", padding: 0, transition: ".15s" }}>★</button>
+                  ))}
+                </div>
+                {fbRating > 0 && <div style={{ textAlign: "center", fontSize: 11, color: "#888", marginTop: 4 }}>{["", "Sangat Buruk", "Kurang", "Cukup", "Baik", "Sangat Baik"][fbRating]}</div>}
+              </div>
+
+              <div style={{ marginBottom: 16 }}>
+                <div style={{ fontSize: 12, fontWeight: 600, marginBottom: 8, color: "#333" }}>KATEGORI</div>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                  {["Pelayanan", "Rasa Makanan", "Kebersihan", "Harga", "Lainnya"].map(c => (
+                    <button key={c} onClick={() => setFbCategory(c)} style={{ padding: "7px 12px", borderRadius: 20, border: `1px solid ${fbCategory === c ? G : "#ddd"}`, background: fbCategory === c ? G : "#fff", color: fbCategory === c ? "#fff" : "#666", fontSize: 12, cursor: "pointer", fontWeight: 500 }}>{c}</button>
+                  ))}
+                </div>
+              </div>
+
+              <div style={{ marginBottom: 16 }}>
+                <div style={{ fontSize: 12, fontWeight: 600, marginBottom: 8, color: "#333" }}>PESAN ANDA</div>
+                <textarea value={fbMessage} onChange={e => setFbMessage(e.target.value)} rows={5} maxLength={500} placeholder="Ceritakan pengalaman Anda makan di Mie 99..." style={{ width: "100%", padding: 12, border: "1px solid #ddd", borderRadius: 10, fontSize: 13, fontFamily: "inherit", resize: "none", outline: "none" }} />
+                <div style={{ textAlign: "right", fontSize: 10, color: "#aaa", marginTop: 2 }}>{fbMessage.length}/500</div>
+              </div>
+
+              <button onClick={submitFeedback} disabled={fbSending} style={{ width: "100%", padding: 12, borderRadius: 10, border: "none", background: G, color: "#fff", fontWeight: 700, fontSize: 14, cursor: fbSending ? "not-allowed" : "pointer", opacity: fbSending ? .6 : 1, fontFamily: "inherit" }}>{fbSending ? "Mengirim..." : "Kirim Masukan"}</button>
+            </>
+          )}
+        </div>
+      </div>
+    );
+
     if (subView === "history") return (
       <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "16px 20px", borderBottom: "1px solid #eee" }}>
@@ -632,7 +710,7 @@ export default function App() {
   const mm = String(Math.floor(timer / 60)).padStart(2, "0");
   const ss = String(timer % 60).padStart(2, "0");
 
-  const buildApiItems = () => cart.map(l => ({ menuItemId: l.itemId, quantity: l.qty, notes: l.notes || "", modifierIds: l.modifierIds || [] }));
+  const buildApiItems = () => cart.map(l => ({ menuItemId: l.itemId, quantity: l.qty, unitPrice: l.unitPrice, notes: l.notes || "", modifierIds: l.modifierIds || [] }));
 
   const handleCheckout = async () => {
     setProcessing(true);
