@@ -403,10 +403,67 @@ async function cancelOrder(id){
 
 function printReceipt(id){
   const o=allOrders.find(x=>x.id===id);if(!o)return;
-  const w=window.open("","","width=300,height=600");
-  const items=(o.items||[]).map(i=>`<div class="row"><span>${i.quantity}x ${i.name}</span><span>${rupiah(i.totalPrice)}</span></div>${i.modifiers?`<div style="font-size:10px;padding-left:8px;color:#666">${i.modifiers}</div>`:""}`).join("");
-  w.document.write(`<html><head><title>Struk Mie 99</title><style>body{font-family:'Courier New',monospace;font-size:11px;padding:10px;width:270px;color:#000}.center{text-align:center}.line{border-top:1px dashed #000;margin:6px 0}.row{display:flex;justify-content:space-between;padding:2px 0}.bold{font-weight:bold}</style></head><body><div class="center"><b style="font-size:14px">MIE 99</b><br>Mojokerto<br>Jl. Pahlawan No. 99<br>Telp: 0321-999999</div><div class="line"></div><div class="row"><span>No. Order</span><span>${o.id.slice(0,8).toUpperCase()}</span></div>${o.queue_number?`<div class="row"><span>Antrean</span><span class="bold">${o.queue_number}</span></div>`:""}<div class="row"><span>Meja</span><span class="bold">${o.tableNumber}</span></div><div class="row"><span>Pelanggan</span><span>${o.customer_name}</span></div><div class="row"><span>Tanggal</span><span>${new Date(o.created_at).toLocaleString("id-ID")}</span></div><div class="row"><span>Bayar</span><span>${o.payment_method}</span></div><div class="line"></div>${items}<div class="line"></div><div class="row"><span>Subtotal</span><span>${rupiah(o.subtotal)}</span></div><div class="row"><span>Pajak (10%)</span><span>${rupiah(o.tax)}</span></div>${o.rounding?`<div class="row"><span>Pembulatan</span><span>${rupiah(o.rounding)}</span></div>`:""}<div class="row bold" style="font-size:13px"><span>TOTAL</span><span>${rupiah(o.total_amount)}</span></div><div class="line"></div><div class="center" style="margin-top:8px">Terima kasih atas kunjungannya!<br>Selamat menikmati 🍜<br><br>** Struk ini berlaku sebagai bukti pembayaran sah **</div></body></html>`);
-  w.document.close();setTimeout(()=>w.print(),300);
+  const w=window.open("","","width=400,height=700");
+  const items=(o.items||[]).map(i=>{
+    const subtotal=(i.totalPrice||0);
+    let html=`<div class="row"><span class="qty">${i.quantity}x</span><span class="name">${i.name||"Item"}</span><span class="price">${rupiah(subtotal)}</span></div>`;
+    if(i.modifiers)html+=`<div class="sub">  ${i.modifiers}</div>`;
+    if(i.notes)html+=`<div class="sub">  Note: ${i.notes}</div>`;
+    return html;
+  }).join("");
+  const totalItems=(o.items||[]).reduce((s,i)=>s+(i.quantity||0),0);
+  w.document.write(`<html><head><title>Struk - ${o.id.slice(0,8)}</title>
+<style>
+@page{size:58mm auto;margin:0}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Courier New',monospace;font-size:11px;width:58mm;padding:6px 4px;color:#000;line-height:1.35}
+.center{text-align:center}.bold{font-weight:bold}
+.line{border-top:1px dashed #000;margin:5px 0}
+.solid{border-top:1px solid #000;margin:5px 0}
+.row{display:flex;justify-content:space-between;align-items:flex-start;gap:4px}
+.row .qty{width:18px;flex-shrink:0}
+.row .name{flex:1;word-wrap:break-word}
+.row .price{flex-shrink:0;text-align:right;white-space:nowrap}
+.sub{font-size:10px;padding-left:18px;color:#333;font-style:italic}
+.total-row{display:flex;justify-content:space-between;font-size:13px;font-weight:bold;padding:2px 0}
+.big{font-size:14px}
+.small{font-size:10px}
+h1{font-size:16px;font-weight:bold;margin-bottom:2px}
+@media print{body{padding:4px 2px}}
+</style></head><body>
+<div class="center">
+  <h1>MIE 99</h1>
+  <div class="small">Mojokerto - Jawa Timur</div>
+  <div class="small">Jl. Pahlawan No. 99</div>
+  <div class="small">Telp: 0321-999999</div>
+</div>
+<div class="line"></div>
+<div class="row"><span>No. Order</span><span class="bold">#${o.id.slice(0,8).toUpperCase()}</span></div>
+${o.queue_number?`<div class="row"><span>No. Antrean</span><span class="bold big">${o.queue_number}</span></div>`:""}
+<div class="row"><span>Meja</span><span class="bold">${o.tableNumber||"-"}</span></div>
+<div class="row"><span>Pelanggan</span><span>${o.customer_name}</span></div>
+<div class="row"><span>Tanggal</span><span class="small">${new Date(o.created_at).toLocaleString("id-ID",{day:"2-digit",month:"2-digit",year:"numeric",hour:"2-digit",minute:"2-digit"})}</span></div>
+<div class="row"><span>Pembayaran</span><span class="bold">${o.payment_method==="QRIS"?"QRIS":"TUNAI"}</span></div>
+<div class="row"><span>Kasir</span><span>${window.currentUser?window.currentUser.fullName:"Staff"}</span></div>
+<div class="line"></div>
+${items}
+<div class="line"></div>
+<div class="row small"><span>Jumlah Item</span><span>${totalItems}</span></div>
+<div class="row"><span>Subtotal</span><span>${rupiah(o.subtotal||0)}</span></div>
+<div class="row"><span>Pajak (10%)</span><span>${rupiah(o.tax||0)}</span></div>
+${o.rounding?`<div class="row small"><span>Pembulatan</span><span>${rupiah(o.rounding)}</span></div>`:""}
+<div class="solid"></div>
+<div class="total-row"><span>TOTAL</span><span>${rupiah(o.total_amount||0)}</span></div>
+<div class="line"></div>
+<div class="center small" style="margin-top:6px;line-height:1.5">
+  ** Terima kasih atas kunjungannya **<br>
+  Selamat menikmati 🍜<br><br>
+  Kritik & Saran:<br>
+  scan QR di meja Anda<br>
+  ===========================
+</div>
+</body></html>`);
+  w.document.close();setTimeout(()=>{w.print();setTimeout(()=>w.close(),500)},300);
 }
 
 // HISTORY
