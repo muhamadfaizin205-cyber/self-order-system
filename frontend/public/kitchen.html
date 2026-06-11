@@ -4,29 +4,112 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Dapur — Mie 99</title>
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <style>
-:root{--bg:#0f1115;--card:#1a1d24;--accent:#25a550;--green:#1aa260;--amber:#f5a623;--text:#e8eaed;--muted:#8a8f98}
-*{box-sizing:border-box;margin:0;padding:0}body{background:var(--bg);color:var(--text);font-family:'Poppins',sans-serif;min-height:100vh}
-header{display:flex;align-items:center;justify-content:space-between;padding:16px 24px;background:var(--card);border-bottom:2px solid var(--accent);position:sticky;top:0;z-index:10}
-header h1{font-size:22px;font-weight:800;letter-spacing:-.5px}header h1 span{color:var(--accent)}
-.status{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted)}
-.dot{width:10px;height:10px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green)}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;padding:24px}
-.ticket{background:var(--card);border-radius:12px;overflow:hidden;border-left:5px solid var(--amber);animation:pop .3s ease}
-@keyframes pop{from{transform:scale(.96);opacity:0}to{transform:scale(1);opacity:1}}
-.ticket-head{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;background:rgba(255,255,255,.04)}
-.queue{font-size:24px;font-weight:800;color:var(--accent)}.table-no{font-size:13px;color:var(--muted)}
-.timer{font-size:13px;font-weight:600;color:var(--amber)}
-.ticket-body{padding:12px 16px}
-.line{padding:8px 0;border-bottom:1px solid rgba(255,255,255,.06)}.line:last-child{border-bottom:none}
-.line-name{font-size:16px;font-weight:600}.line-qty{color:var(--accent);font-weight:800;margin-right:6px}
-.mods{font-size:13px;color:var(--muted);margin-top:3px}.note{font-size:13px;color:var(--amber);font-style:italic;margin-top:3px}
-.done-btn{width:100%;padding:14px;border:none;background:var(--green);color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit}
-.done-btn:hover{filter:brightness(1.1)}.done-btn:active{transform:scale(.98)}
-.empty{grid-column:1/-1;text-align:center;padding:80px;color:var(--muted);font-size:18px}
-@media(max-width:600px){.grid{grid-template-columns:1fr}}
+:root{
+  --bg:#0a0e1a;--card:#161b2e;--card-elevated:#1f2540;
+  --accent:#25a550;--accent-bright:#2dd16a;--accent-dim:#0f5328;
+  --warning:#f59e0b;--danger:#ef4444;--info:#3b82f6;
+  --text:#f1f5f9;--text-dim:#94a3b8;--border:#2a3052;
+}
+*{box-sizing:border-box;margin:0;padding:0;font-family:'Inter',sans-serif}
+body{background:var(--bg);color:var(--text);min-height:100vh;font-size:14px;overflow-x:hidden}
+button{font-family:inherit;cursor:pointer;border:none;outline:none}
+
+/* Header */
+.header{display:flex;align-items:center;justify-content:space-between;padding:14px 24px;background:var(--card);border-bottom:2px solid var(--accent);position:sticky;top:0;z-index:10}
+.header-left{display:flex;align-items:center;gap:14px}
+.brand{display:flex;align-items:center;gap:10px}
+.brand-icon{width:36px;height:36px;background:var(--accent);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px}
+.brand-text{font-size:18px;font-weight:800}.brand-sub{font-size:11px;color:var(--text-dim);margin-top:1px}
+
+.header-stats{display:flex;gap:14px;margin-left:30px}
+.h-stat{padding:6px 14px;background:var(--card-elevated);border-radius:8px;border:1px solid var(--border)}
+.h-stat-label{font-size:9.5px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.5px;font-weight:600}
+.h-stat-value{font-size:18px;font-weight:800;margin-top:1px}
+.h-stat-value.accent{color:var(--accent-bright)}.h-stat-value.warn{color:var(--warning)}
+
+.header-right{display:flex;align-items:center;gap:10px}
+.clock{padding:8px 14px;background:var(--card-elevated);border:1px solid var(--border);border-radius:8px;font-variant-numeric:tabular-nums;font-weight:700;font-size:14px}
+.user-chip{display:flex;align-items:center;gap:8px;padding:7px 12px;background:var(--card-elevated);border:1px solid var(--border);border-radius:8px;font-size:12.5px}
+.user-dot{width:8px;height:8px;border-radius:50%;background:var(--accent-bright);box-shadow:0 0 6px var(--accent-bright);animation:blink 2s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.4}}
+.btn-logout{padding:7px 14px;background:rgba(239,68,68,.1);color:var(--danger);border:1px solid rgba(239,68,68,.3);border-radius:8px;cursor:pointer;font-size:12.5px;font-weight:600;font-family:inherit}
+.btn-logout:hover{background:rgba(239,68,68,.2)}
+
+/* Tabs */
+.tabs{display:flex;gap:6px;padding:16px 24px 0;flex-wrap:wrap}
+.tab{padding:9px 18px;border-radius:8px 8px 0 0;background:var(--card);color:var(--text-dim);font-size:13px;font-weight:600;cursor:pointer;border-bottom:3px solid transparent;display:flex;align-items:center;gap:8px}
+.tab.active{color:var(--accent-bright);border-bottom-color:var(--accent-bright);background:var(--card-elevated)}
+.tab-count{padding:2px 8px;background:var(--card-elevated);color:var(--accent-bright);border-radius:10px;font-size:11px;font-weight:700}
+.tab.active .tab-count{background:var(--accent);color:#fff}
+
+/* Content */
+.content{padding:20px 24px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:14px}
+
+/* Ticket */
+.ticket{background:var(--card);border-radius:12px;border-left:5px solid var(--warning);overflow:hidden;animation:slideUp .3s ease;display:flex;flex-direction:column}
+.ticket.urgent{border-left-color:var(--danger);box-shadow:0 0 0 2px rgba(239,68,68,.15);animation:slideUp .3s ease,pulse-red 2s ease infinite}
+.ticket.priority{border-left-color:var(--accent-bright)}
+.ticket.done{border-left-color:var(--text-dim);opacity:.7}
+@keyframes slideUp{from{transform:translateY(8px);opacity:0}to{transform:translateY(0);opacity:1}}
+@keyframes pulse-red{0%,100%{box-shadow:0 0 0 2px rgba(239,68,68,.15)}50%{box-shadow:0 0 0 4px rgba(239,68,68,.3)}}
+
+.ticket-head{display:flex;justify-content:space-between;align-items:center;padding:14px 16px;background:rgba(255,255,255,.03);border-bottom:1px solid var(--border)}
+.queue{font-size:24px;font-weight:800;color:var(--accent-bright);line-height:1}
+.queue-meta{font-size:11px;color:var(--text-dim);margin-top:3px}
+.timer{text-align:right}
+.timer-val{font-size:18px;font-weight:800;font-variant-numeric:tabular-nums}
+.timer-val.warn{color:var(--warning)}.timer-val.danger{color:var(--danger)}
+.timer-label{font-size:10px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.5px;margin-top:2px}
+
+.ticket-body{padding:12px 16px;flex:1}
+.item-line{padding:10px 0;border-bottom:1px solid var(--border)}
+.item-line:last-child{border-bottom:none}
+.item-row{display:flex;align-items:flex-start;gap:10px}
+.item-checkbox{width:24px;height:24px;border:2px solid var(--border);border-radius:6px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;background:transparent;transition:.15s;margin-top:2px}
+.item-checkbox.checked{background:var(--accent);border-color:var(--accent)}
+.item-info{flex:1;min-width:0}
+.item-name{font-size:16px;font-weight:700;line-height:1.2}
+.item-name.checked{text-decoration:line-through;color:var(--text-dim)}
+.qty-badge{display:inline-block;background:var(--accent);color:#fff;font-weight:800;font-size:13px;padding:2px 8px;border-radius:6px;margin-right:8px}
+.item-mods{font-size:13px;color:var(--accent-bright);margin-top:4px;font-weight:500}
+.item-notes{font-size:13px;color:var(--warning);font-style:italic;margin-top:4px;padding:5px 8px;background:rgba(245,158,11,.1);border-radius:4px;border-left:3px solid var(--warning)}
+
+.ticket-foot{padding:12px 16px;border-top:1px solid var(--border);display:flex;gap:8px}
+.btn{padding:11px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;flex:1;display:flex;align-items:center;justify-content:center;gap:6px;font-family:inherit;transition:.15s;border:none}
+.btn:active{transform:scale(.97)}
+.btn-done{background:var(--accent);color:#fff}.btn-done:hover{background:var(--accent-bright)}
+.btn-back{background:var(--card-elevated);color:var(--text);border:1px solid var(--border)}.btn-back:hover{background:var(--border)}
+.progress{height:4px;background:var(--border);border-radius:2px;margin:8px 16px 0;overflow:hidden}
+.progress-bar{height:100%;background:var(--accent);transition:width .3s}
+
+/* Empty */
+.empty{grid-column:1/-1;text-align:center;padding:80px 20px;color:var(--text-dim)}
+.empty-icon{font-size:56px;margin-bottom:16px;opacity:.4}
+.empty-title{font-size:18px;font-weight:700;margin-bottom:6px;color:var(--text)}
+.empty-sub{font-size:13px}
+
+/* Sound toggle */
+.sound-toggle{position:fixed;bottom:24px;right:24px;width:52px;height:52px;border-radius:50%;background:var(--card-elevated);border:1px solid var(--border);color:var(--accent-bright);font-size:22px;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(0,0,0,.4);z-index:20}
+.sound-toggle.muted{color:var(--text-dim)}
+
+/* Mobile */
+@media(max-width:768px){
+  .header{flex-wrap:wrap;padding:12px 16px}
+  .header-stats{margin-left:0;flex:1 1 100%;justify-content:space-around;margin-top:10px;gap:8px}
+  .h-stat{padding:6px 10px;flex:1}.h-stat-value{font-size:15px}
+  .content{padding:14px}
+  .grid{grid-template-columns:1fr;gap:10px}
+  .brand-text{font-size:15px}.clock{font-size:12px;padding:6px 10px}
+  .user-chip{display:none}
+}
+
+::-webkit-scrollbar{width:8px;height:8px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:#2a3052;border-radius:4px}
 </style>
 </head>
 <body>
@@ -35,10 +118,8 @@ header h1{font-size:22px;font-weight:800;letter-spacing:-.5px}header h1 span{col
   const userStr=sessionStorage.getItem("mie99_user");
   if(!userStr){window.location.href="/login.html";return}
   const user=JSON.parse(userStr);
-  const path=window.location.pathname;
-  const allowed={admin:["/admin.html"],kasir:["/cashier.html"],dapur:["/kitchen.html"]};
-  const userPaths=allowed[user.role]||[];
-  if(!userPaths.some(p=>path.endsWith(p))){
+  const allowed=["dapur","admin"];
+  if(!allowed.includes(user.role)){
     alert("Anda tidak punya akses ke halaman ini.");
     window.location.href="/login.html";
   }
@@ -51,14 +132,44 @@ function logout(){
 }
 </script>
 
-<header>
-  <h1>🍜 Mie 99 <span>· Dapur</span></h1>
-  <div style="display:flex;align-items:center;gap:14px">
-    <div class="status"><span class="dot"></span><span id="user-name-k">Dapur</span></div>
-    <button onclick="logout()" style="padding:8px 16px;background:rgba(255,255,255,.1);color:#fff;border:1px solid rgba(255,255,255,.2);border-radius:8px;cursor:pointer;font-size:13px;font-family:inherit">🚪 Keluar</button>
+<div class="header">
+  <div class="header-left">
+    <div class="brand">
+      <div class="brand-icon">🍜</div>
+      <div>
+        <div class="brand-text">Mie 99</div>
+        <div class="brand-sub">Kitchen Display System</div>
+      </div>
+    </div>
+    <div class="header-stats">
+      <div class="h-stat"><div class="h-stat-label">Antrean</div><div class="h-stat-value warn" id="h-queue">0</div></div>
+      <div class="h-stat"><div class="h-stat-label">Selesai Hari Ini</div><div class="h-stat-value accent" id="h-done">0</div></div>
+      <div class="h-stat"><div class="h-stat-label">Rata Waktu</div><div class="h-stat-value" id="h-avg">0 mnt</div></div>
+    </div>
   </div>
-</header>
-<div class="grid" id="grid"><div class="empty">Memuat pesanan...</div></div>
+  <div class="header-right">
+    <div class="user-chip"><span class="user-dot"></span><span id="user-name">Dapur</span></div>
+    <div class="clock" id="clock">--:--:--</div>
+    <button class="btn-logout" onclick="logout()">🚪 Keluar</button>
+  </div>
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="switchTab('active',this)">
+    <span>🔥 Aktif</span><span class="tab-count" id="c-active">0</span>
+  </div>
+  <div class="tab" onclick="switchTab('done',this)">
+    <span>✅ Selesai</span><span class="tab-count" id="c-done">0</span>
+  </div>
+</div>
+
+<div class="content">
+  <div class="grid" id="grid"><div class="empty"><div class="empty-icon">⏳</div><div class="empty-title">Memuat...</div></div></div>
+</div>
+
+<button class="sound-toggle" id="sound-btn" onclick="toggleSound()" title="Notifikasi suara">🔔</button>
+
+<audio id="notif-sound" preload="auto"><source src="data:audio/wav;base64,UklGRl9vT19XQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YU"></audio>
 
 <script>
 const SB_URL="https://lhcbbupqhpljhtcdrloy.supabase.co";
@@ -66,25 +177,189 @@ const SB_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZ
 const RID="11111111-1111-1111-1111-111111111111";
 const sb=window.supabase.createClient(SB_URL,SB_KEY);
 
-function fmtTimer(c){const m=Math.floor((Date.now()-new Date(c))/60000);return m<=0?"baru":m+" menit lalu";}
+let allOrders=[];
+let currentTab="active";
+let checkedItems={}; // {orderId: Set of itemIds}
+let soundEnabled=true;
+let lastActiveCount=0;
+
+// User info
+if(window.currentUser)document.getElementById("user-name").textContent=window.currentUser.fullName||"Dapur";
+
+// Clock
+setInterval(()=>{document.getElementById("clock").textContent=new Date().toLocaleTimeString("id-ID")},1000);
+
+// Update timer setiap menit
+setInterval(()=>render(),60000);
+
+function switchTab(tab,el){
+  currentTab=tab;
+  document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
+  el.classList.add("active");
+  render();
+}
+
+function toggleSound(){
+  soundEnabled=!soundEnabled;
+  document.getElementById("sound-btn").textContent=soundEnabled?"🔔":"🔕";
+  document.getElementById("sound-btn").classList.toggle("muted",!soundEnabled);
+  localStorage.setItem("mie99_sound",soundEnabled?"1":"0");
+}
+
+if(localStorage.getItem("mie99_sound")==="0"){soundEnabled=false;document.getElementById("sound-btn").textContent="🔕";document.getElementById("sound-btn").classList.add("muted")}
+
+function playBeep(){
+  if(!soundEnabled)return;
+  try{
+    const ctx=new(window.AudioContext||window.webkitAudioContext)();
+    const o=ctx.createOscillator();const g=ctx.createGain();
+    o.connect(g);g.connect(ctx.destination);
+    o.frequency.value=800;o.type="sine";
+    g.gain.setValueAtTime(.3,ctx.currentTime);
+    g.gain.exponentialRampToValueAtTime(.01,ctx.currentTime+.3);
+    o.start();o.stop(ctx.currentTime+.3);
+  }catch(e){}
+}
 
 async function load(){
-  const{data}=await sb.from("orders").select("*,tables(table_number),order_items(*,menu_items(name),order_item_modifiers(*,modifiers(name)))").eq("restaurant_id",RID).in("status",["KITCHEN","PAID"]).order("created_at",{ascending:true});
+  const today=new Date();today.setHours(0,0,0,0);
+  const{data}=await sb.from("orders")
+    .select("*,tables(table_number),order_items(*,menu_items(name),order_item_modifiers(*,modifiers(name)))")
+    .eq("restaurant_id",RID)
+    .in("status",["KITCHEN","PAID","DONE"])
+    .gte("created_at",today.toISOString())
+    .order("created_at",{ascending:true});
+  allOrders=data||[];
+
+  const active=allOrders.filter(o=>o.status==="KITCHEN"||o.status==="PAID");
+  const done=allOrders.filter(o=>o.status==="DONE");
+
+  // Notif suara kalau ada order baru
+  if(active.length>lastActiveCount&&lastActiveCount>0)playBeep();
+  lastActiveCount=active.length;
+
+  // Update header stats
+  document.getElementById("h-queue").textContent=active.length;
+  document.getElementById("h-done").textContent=done.length;
+  document.getElementById("c-active").textContent=active.length;
+  document.getElementById("c-done").textContent=done.length;
+
+  // Rata-rata waktu masak
+  if(done.length){
+    const totalMins=done.reduce((s,o)=>{
+      const start=new Date(o.paid_at||o.created_at);
+      const end=new Date(o.updated_at);
+      return s+Math.max(0,(end-start)/60000);
+    },0);
+    document.getElementById("h-avg").textContent=Math.round(totalMins/done.length)+" mnt";
+  }else{
+    document.getElementById("h-avg").textContent="—";
+  }
+
+  render();
+}
+
+function render(){
   const grid=document.getElementById("grid");
-  if(!data||!data.length){grid.innerHTML='<div class="empty">Tidak ada pesanan aktif. Menunggu...</div>';return;}
-  grid.innerHTML=data.map(o=>{
-    const items=(o.order_items||[]).map(i=>({name:i.menu_items?.name,qty:i.quantity,notes:i.notes,mods:(i.order_item_modifiers||[]).map(m=>m.modifiers?.name).filter(Boolean).join(", ")}));
-    return`<div class="ticket"><div class="ticket-head"><div><div class="queue">${o.queue_number||"—"}</div><div class="table-no">Meja ${o.tables?.table_number||"?"} · ${o.customer_name}</div></div><div class="timer">${fmtTimer(o.created_at)}</div></div><div class="ticket-body">${items.map(i=>`<div class="line"><div class="line-name"><span class="line-qty">${i.qty}×</span>${i.name||"Item"}</div>${i.mods?`<div class="mods">${i.mods}</div>`:""}${i.notes?`<div class="note">📝 ${i.notes}</div>`:""}</div>`).join("")}</div><button class="done-btn" onclick="done('${o.id}')">✓ Selesai</button></div>`;
+  const list=currentTab==="active"
+    ? allOrders.filter(o=>o.status==="KITCHEN"||o.status==="PAID")
+    : allOrders.filter(o=>o.status==="DONE");
+
+  if(!list.length){
+    grid.innerHTML=currentTab==="active"
+      ? `<div class="empty"><div class="empty-icon">🍳</div><div class="empty-title">Tidak ada pesanan aktif</div><div class="empty-sub">Pesanan baru akan muncul otomatis di sini</div></div>`
+      : `<div class="empty"><div class="empty-icon">📋</div><div class="empty-title">Belum ada pesanan selesai</div><div class="empty-sub">Pesanan yang sudah Anda selesaikan akan tercatat di sini</div></div>`;
+    return;
+  }
+
+  grid.innerHTML=list.map(o=>{
+    const items=(o.order_items||[]).map(i=>({
+      id:i.id,
+      name:i.menu_items?.name||"Item",
+      qty:i.quantity,
+      notes:i.notes,
+      mods:(i.order_item_modifiers||[]).map(m=>m.modifiers?.name).filter(Boolean).join(", ")
+    }));
+
+    const start=new Date(o.paid_at||o.created_at);
+    const mins=Math.floor((Date.now()-start)/60000);
+    const minsDisplay=mins<=0?"0":mins;
+
+    let urgentClass="";
+    let timerClass="";
+    if(o.status!=="DONE"){
+      if(mins>=15){urgentClass="urgent";timerClass="danger"}
+      else if(mins>=10){timerClass="warn"}
+      else if(mins<=2){urgentClass="priority"}
+    }
+    if(o.status==="DONE")urgentClass="done";
+
+    const checked=checkedItems[o.id]||new Set();
+    const progress=items.length?Math.round([...checked].filter(id=>items.find(i=>i.id===id)).length/items.length*100):0;
+
+    return`<div class="ticket ${urgentClass}">
+      <div class="ticket-head">
+        <div>
+          <div class="queue">${o.queue_number||"—"}</div>
+          <div class="queue-meta">Meja ${o.tables?.table_number||"?"} · ${o.customer_name}</div>
+        </div>
+        <div class="timer">
+          <div class="timer-val ${timerClass}">${minsDisplay}'</div>
+          <div class="timer-label">${o.status==="DONE"?"Selesai":"Sejak masuk"}</div>
+        </div>
+      </div>
+
+      ${o.status!=="DONE"?`<div class="progress"><div class="progress-bar" style="width:${progress}%"></div></div>`:""}
+
+      <div class="ticket-body">
+        ${items.map(i=>`
+          <div class="item-line">
+            <div class="item-row">
+              ${o.status!=="DONE"?`<button class="item-checkbox ${checked.has(i.id)?"checked":""}" onclick="toggleItem('${o.id}','${i.id}')">${checked.has(i.id)?'<span style="color:#fff;font-size:14px">✓</span>':''}</button>`:`<div class="item-checkbox checked"><span style="color:#fff;font-size:14px">✓</span></div>`}
+              <div class="item-info">
+                <div class="item-name ${checked.has(i.id)?"checked":""}"><span class="qty-badge">${i.qty}×</span>${i.name}</div>
+                ${i.mods?`<div class="item-mods">+ ${i.mods}</div>`:""}
+                ${i.notes?`<div class="item-notes">📝 ${i.notes}</div>`:""}
+              </div>
+            </div>
+          </div>
+        `).join("")}
+      </div>
+
+      <div class="ticket-foot">
+        ${o.status==="DONE"
+          ? `<button class="btn btn-back" onclick="reopenOrder('${o.id}')">↩ Kembalikan ke Aktif</button>`
+          : `<button class="btn btn-done" onclick="markDone('${o.id}')">✓ Pesanan Siap Antar</button>`
+        }
+      </div>
+    </div>`;
   }).join("");
 }
 
-async function done(id){await sb.from("orders").update({status:"DONE"}).eq("id",id);load();}
+function toggleItem(orderId,itemId){
+  if(!checkedItems[orderId])checkedItems[orderId]=new Set();
+  if(checkedItems[orderId].has(itemId))checkedItems[orderId].delete(itemId);
+  else checkedItems[orderId].add(itemId);
+  render();
+}
 
+async function markDone(id){
+  if(!confirm("Tandai pesanan ini sebagai siap antar?"))return;
+  await sb.from("orders").update({status:"DONE",updated_at:new Date().toISOString()}).eq("id",id);
+  delete checkedItems[id];
+  load();
+}
+
+async function reopenOrder(id){
+  if(!confirm("Kembalikan pesanan ini ke daftar aktif?"))return;
+  await sb.from("orders").update({status:"KITCHEN",updated_at:new Date().toISOString()}).eq("id",id);
+  load();
+}
+
+// Realtime + polling
 sb.channel("kitchen-rt").on("postgres_changes",{event:"*",schema:"public",table:"orders"},()=>load()).subscribe();
-
-
-if(window.currentUser)document.getElementById("user-name-k").textContent=window.currentUser.fullName||"Dapur";
-load();setInterval(load,15000);
+load();
+setInterval(load,15000);
 </script>
 </body>
 </html>
