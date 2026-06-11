@@ -200,6 +200,28 @@ export const api = {
     return { status: "KITCHEN", queueNumber };
   },
 
+
+  async getSettings() {
+    try {
+      const { data } = await supabase.from("restaurants").select("*").eq("id", RESTAURANT_ID).single();
+      const { data: banners } = await supabase.from("banners").select("*").eq("restaurant_id", RESTAURANT_ID).eq("is_active", true).order("sort_order");
+      return {
+        name: data?.name || "Mie 99",
+        address: data?.address || "",
+        phone: data?.phone || "",
+        hours: data?.hours_full || "10:00 - 22:00 WIB",
+        mapsUrl: data?.maps_url || "",
+        schedule: data?.schedule_json ? JSON.parse(data.schedule_json) : [],
+        faq: data?.faq_json ? JSON.parse(data.faq_json) : [],
+        privacy: data?.privacy_text || "",
+        banners: banners || [],
+      };
+    } catch (e) {
+      console.error("getSettings error:", e);
+      return { name: "Mie 99", address: "", phone: "", hours: "", schedule: [], faq: [], privacy: "", banners: [] };
+    }
+  },
+
   subscribeOrders(callback) {
     return supabase.channel("orders-changes").on("postgres_changes", { event: "*", schema: "public", table: "orders" }, callback).subscribe();
   },
