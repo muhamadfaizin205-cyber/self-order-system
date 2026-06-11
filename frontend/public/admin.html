@@ -33,6 +33,8 @@ input,select,textarea{font-family:inherit;outline:none}
 .nav-item{display:flex;align-items:center;gap:12px;padding:10px 12px;color:#cbd5e1;border-radius:8px;cursor:pointer;transition:.15s;font-size:13.5px;font-weight:500;margin-bottom:2px}
 .nav-item:hover{background:var(--sidebar-hover);color:#fff}.nav-item.active{background:var(--sidebar-active);color:#fff;font-weight:600}
 .nav-icon{width:18px;height:18px;display:inline-block;text-align:center}
+
+.nav-badge{margin-left:auto;background:var(--danger);color:#fff;font-size:10px;font-weight:700;padding:2px 7px;border-radius:10px;min-width:18px;text-align:center}
 .menu-btn{display:none;position:fixed;top:16px;left:16px;z-index:50;background:var(--sidebar);color:#fff;width:40px;height:40px;border-radius:8px;font-size:18px}
 
 /* Top bar */
@@ -198,6 +200,8 @@ function logout(){
       <div class="nav-section">Pesanan</div>
       <div class="nav-item" onclick="showPage('orders',this)"><span class="nav-icon">📋</span>Riwayat Pesanan</div>
       <div class="nav-item" onclick="showPage('reports',this)"><span class="nav-icon">📄</span>Laporan</div>
+      <div class="nav-section">Pelanggan</div>
+      <div class="nav-item" onclick="showPage('feedback',this)"><span class="nav-icon">💬</span>Kritik & Saran<span class="nav-badge" id="badge-feedback" style="display:none">0</span></div>
     </div>
   <div style="padding:16px 12px;border-top:1px solid #1f2937;margin-top:auto">
         <div id="user-info" style="padding:10px 12px;font-size:12px;color:#9ca3af">
@@ -358,6 +362,24 @@ function logout(){
         <div class="section-body padded" id="report-content"></div>
       </div>
     </div>
+  
+    <!-- FEEDBACK PAGE -->
+    <div id="page-feedback" class="page">
+      <div class="stat-grid" id="feedback-stats"></div>
+      <div class="section">
+        <div class="section-head">
+          <div class="section-title">Kritik & Saran Pelanggan</div>
+          <button class="btn btn-secondary btn-sm" onclick="markAllRead()">Tandai semua dibaca</button>
+        </div>
+        <div class="filter-bar">
+          <div class="tab-pill active" onclick="filterFeedback('all',this)">Semua</div>
+          <div class="tab-pill" onclick="filterFeedback('unread',this)">Belum dibaca</div>
+          <div class="tab-pill" onclick="filterFeedback('5',this)">★★★★★</div>
+          <div class="tab-pill" onclick="filterFeedback('low',this)">≤ ★★★</div>
+        </div>
+        <div id="feedback-list" style="padding:8px"></div>
+      </div>
+    </div>
   </main>
 </div>
 
@@ -370,9 +392,19 @@ function logout(){
     </div>
     <div class="modal-body">
       <div class="field">
-        <label class="label">URL Gambar</label>
-        <input class="input" id="m-image" placeholder="https://..." oninput="document.getElementById('m-img-prev').src=this.value">
-        <img id="m-img-prev" class="img-preview" style="margin-top:10px" src="">
+        <label class="label">Gambar Menu</label>
+        <div style="display:flex;gap:14px;align-items:flex-start;flex-wrap:wrap">
+          <div>
+            <img id="m-img-prev" class="img-preview" style="width:120px;height:120px;border:2px dashed var(--border);border-radius:10px" src="">
+            <div id="m-upload-status" style="font-size:11px;color:var(--text-light);margin-top:6px;text-align:center"></div>
+          </div>
+          <div style="flex:1;min-width:200px">
+            <input type="file" id="m-image-file" accept="image/*" style="display:none" onchange="uploadImage(event)">
+            <button type="button" class="btn btn-secondary btn-sm" onclick="document.getElementById('m-image-file').click()" style="width:100%;margin-bottom:8px">📤 Upload Gambar</button>
+            <div style="font-size:11px;color:var(--text-light);margin-bottom:10px">JPG/PNG, max 2MB. Akan otomatis di-resize ke 400x400px.</div>
+            <input class="input" id="m-image" placeholder="atau paste URL gambar" oninput="document.getElementById('m-img-prev').src=this.value" style="font-size:12px">
+          </div>
+        </div>
       </div>
       <div class="field">
         <label class="label">Nama Menu *</label>
@@ -465,12 +497,13 @@ function showPage(name,el){
   document.getElementById("page-"+name).classList.add("active");
   document.querySelectorAll(".nav-item").forEach(n=>n.classList.remove("active"));
   if(el)el.classList.add("active");
-  const titles={dashboard:["Dashboard","Ringkasan performa restoran"],menu:["Menu","Kelola item menu restoran"],categories:["Kategori","Kelompokkan menu Anda"],orders:["Riwayat Pesanan","Semua pesanan terkini"],reports:["Laporan","Generate laporan periode tertentu"]};
+  const titles={dashboard:["Dashboard","Ringkasan performa restoran"],menu:["Menu","Kelola item menu restoran"],categories:["Kategori","Kelompokkan menu Anda"],orders:["Riwayat Pesanan","Semua pesanan terkini"],reports:["Laporan","Generate laporan periode tertentu"],feedback:["Kritik & Saran","Masukan dari pelanggan"]};
   document.getElementById("page-title").textContent=titles[name][0];
   document.getElementById("page-sub").textContent=titles[name][1];
   if(name==="menu")renderMenu();
   if(name==="categories")renderCategories();
   if(name==="orders")loadOrders();
+  if(name==="feedback")loadFeedback();
   if(window.innerWidth<=768)document.querySelector(".sidebar").classList.remove("open");
 }
 
@@ -808,6 +841,137 @@ if(window.currentUser){
   document.getElementById("user-name").textContent=window.currentUser.fullName||window.currentUser.username;
   document.getElementById("user-role").textContent=window.currentUser.role.toUpperCase();
 }
+
+// ============================================================
+// IMAGE UPLOAD
+// ============================================================
+async function uploadImage(e){
+  const file=e.target.files[0];if(!file)return;
+  if(file.size>2*1024*1024){alert("File terlalu besar. Max 2MB.");return}
+  const status=document.getElementById("m-upload-status");
+  status.textContent="Memproses...";status.style.color="var(--info)";
+
+  // Resize ke 400x400 di client (canvas) sebelum upload
+  const dataUrl=await resizeImage(file,400,400);
+  const blob=await(await fetch(dataUrl)).blob();
+  const fileName=`menu-${Date.now()}.jpg`;
+
+  status.textContent="Upload...";
+  const{data,error}=await sb.storage.from("menu-images").upload(fileName,blob,{contentType:"image/jpeg",upsert:false});
+  if(error){status.textContent="Gagal: "+error.message;status.style.color="var(--danger)";return}
+
+  const{data:urlData}=sb.storage.from("menu-images").getPublicUrl(fileName);
+  document.getElementById("m-image").value=urlData.publicUrl;
+  document.getElementById("m-img-prev").src=urlData.publicUrl;
+  status.textContent="✓ Berhasil";status.style.color="var(--success)";
+  setTimeout(()=>{status.textContent=""},2000);
+}
+
+function resizeImage(file,maxW,maxH){
+  return new Promise((resolve,reject)=>{
+    const reader=new FileReader();
+    reader.onload=e=>{
+      const img=new Image();
+      img.onload=()=>{
+        let w=img.width,h=img.height;
+        // Crop ke square dulu
+        const size=Math.min(w,h);
+        const sx=(w-size)/2,sy=(h-size)/2;
+        const canvas=document.createElement("canvas");
+        canvas.width=maxW;canvas.height=maxH;
+        const ctx=canvas.getContext("2d");
+        ctx.imageSmoothingQuality="high";
+        ctx.drawImage(img,sx,sy,size,size,0,0,maxW,maxH);
+        resolve(canvas.toDataURL("image/jpeg",.85));
+      };
+      img.onerror=reject;
+      img.src=e.target.result;
+    };
+    reader.onerror=reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+// ============================================================
+// FEEDBACK
+// ============================================================
+let allFeedback=[],feedbackFilter="all";
+
+async function loadFeedback(){
+  const{data}=await sb.from("feedback").select("*").eq("restaurant_id",RID).order("created_at",{ascending:false}).limit(200);
+  allFeedback=data||[];
+  renderFeedback();
+}
+
+function updateFeedbackBadge(){
+  const unread=allFeedback.filter(f=>!f.is_read).length;
+  const badge=document.getElementById("badge-feedback");
+  if(unread>0){badge.style.display="inline-block";badge.textContent=unread}
+  else badge.style.display="none";
+}
+
+function filterFeedback(f,el){
+  feedbackFilter=f;
+  document.querySelectorAll("#page-feedback .tab-pill").forEach(t=>t.classList.remove("active"));
+  el.classList.add("active");
+  renderFeedback();
+}
+
+function renderFeedback(){
+  let list=allFeedback;
+  if(feedbackFilter==="unread")list=list.filter(f=>!f.is_read);
+  else if(feedbackFilter==="5")list=list.filter(f=>f.rating===5);
+  else if(feedbackFilter==="low")list=list.filter(f=>f.rating<=3);
+
+  // Stats
+  const all=allFeedback;
+  const avg=all.length?(all.reduce((s,f)=>s+(f.rating||0),0)/all.length).toFixed(1):"—";
+  const unread=all.filter(f=>!f.is_read).length;
+  document.getElementById("feedback-stats").innerHTML=`
+    <div class="stat"><div class="stat-label">Total Masukan</div><div class="stat-value">${all.length}</div></div>
+    <div class="stat"><div class="stat-label">Belum Dibaca</div><div class="stat-value" style="color:var(--danger)">${unread}</div></div>
+    <div class="stat"><div class="stat-label">Rating Rata-rata</div><div class="stat-value" style="color:var(--warning)">${avg} ★</div></div>
+    <div class="stat"><div class="stat-label">Rating Tertinggi</div><div class="stat-value" style="color:var(--success)">${all.filter(f=>f.rating===5).length} ★★★★★</div></div>`;
+
+  updateFeedbackBadge();
+
+  const el=document.getElementById("feedback-list");
+  if(!list.length){el.innerHTML=`<div class="empty"><div class="empty-icon">💬</div>Belum ada masukan.</div>`;return}
+
+  el.innerHTML=list.map(f=>{
+    const stars="★".repeat(f.rating||0)+"☆".repeat(5-(f.rating||0));
+    return`<div style="padding:16px;border:1px solid ${f.is_read?"var(--border)":"#fef3c7"};background:${f.is_read?"#fff":"#fffbeb"};border-radius:10px;margin-bottom:10px">
+      <div style="display:flex;justify-content:space-between;align-items:start;gap:12px;margin-bottom:8px;flex-wrap:wrap">
+        <div>
+          <div style="font-size:18px;color:#f59e0b;letter-spacing:2px">${stars}</div>
+          <div style="font-size:11px;color:var(--text-light);margin-top:4px">
+            ${f.category?`<span style="background:#dbeafe;color:#1e40af;padding:2px 8px;border-radius:4px;margin-right:6px">${f.category}</span>`:""}
+            ${f.table_number?`Meja ${f.table_number} · `:""}${fmtDate(f.created_at)} ${fmtTime(f.created_at)}
+          </div>
+        </div>
+        ${!f.is_read?`<button class="btn btn-secondary btn-sm" onclick="markFeedbackRead('${f.id}')">Tandai dibaca</button>`:""}
+      </div>
+      <div style="font-size:13.5px;line-height:1.6;color:var(--text);margin-top:8px;white-space:pre-wrap">${f.message}</div>
+    </div>`;
+  }).join("");
+}
+
+async function markFeedbackRead(id){
+  await sb.from("feedback").update({is_read:true}).eq("id",id);
+  const f=allFeedback.find(x=>x.id===id);if(f)f.is_read=true;
+  renderFeedback();
+}
+
+async function markAllRead(){
+  if(!confirm("Tandai semua masukan sebagai sudah dibaca?"))return;
+  await sb.from("feedback").update({is_read:true}).eq("restaurant_id",RID).eq("is_read",false);
+  loadFeedback();
+}
+
+// Realtime feedback
+sb.channel("admin-fb").on("postgres_changes",{event:"*",schema:"public",table:"feedback"},()=>loadFeedback()).subscribe();
+loadFeedback();
+
 loadAll();setInterval(loadAll,30000);
 </script>
 </body>
