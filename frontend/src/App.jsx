@@ -129,32 +129,37 @@ body{background:#1a1a1a;font-family:'Poppins',sans-serif}
 // ============================================================
 // BANNER CAROUSEL
 // ============================================================
-function BannerCarousel() {
+function BannerCarousel({ banners }) {
   const [idx, setIdx] = useState(0);
+  const list = banners && banners.length ? banners : [{ image_url: "https://images.unsplash.com/photo-1626804475297-41608ea09aeb?w=800&h=400&fit=crop", title: "🍜 Mie 99", subtitle: "Pedas nampol bikin nagih" }];
   useEffect(() => {
-    const t = setInterval(() => setIdx(i => (i + 1) % BANNERS.length), 4000);
+    if (list.length <= 1) return;
+    const t = setInterval(() => setIdx(i => (i + 1) % list.length), 4000);
     return () => clearInterval(t);
-  }, []);
+  }, [list.length]);
   return (
     <div style={{ position: "relative", borderRadius: 16, overflow: "hidden", margin: "0 0 14px", height: 160 }}>
-      {BANNERS.map((src, i) => (
-        <img key={i} src={src} alt="promo" style={{
+      {list.map((b, i) => (
+        <img key={i} src={b.image_url || b} alt="promo" style={{
           position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover",
           opacity: i === idx ? 1 : 0, transition: "opacity .6s ease",
         }} />
       ))}
-      <div style={{ position: "absolute", inset: 0, background: "linear-gradient(0deg,rgba(0,0,0,.5) 0%,transparent 60%)" }} />
-      <div style={{ position: "absolute", bottom: 14, left: 16, color: "#fff", fontWeight: 700, fontSize: 15, textShadow: "0 1px 4px rgba(0,0,0,.5)" }}>
-        🍜 Paket Hemat 99 — Diskon hingga 30%
+      <div style={{ position: "absolute", inset: 0, background: "linear-gradient(0deg,rgba(0,0,0,.55) 0%,transparent 60%)" }} />
+      <div style={{ position: "absolute", bottom: 14, left: 16, right: 16, color: "#fff", textShadow: "0 1px 4px rgba(0,0,0,.5)" }}>
+        <div style={{ fontWeight: 700, fontSize: 16 }}>{list[idx]?.title || ""}</div>
+        {list[idx]?.subtitle && <div style={{ fontSize: 12, opacity: .95, marginTop: 2 }}>{list[idx].subtitle}</div>}
       </div>
-      <div style={{ position: "absolute", bottom: 10, right: 14, display: "flex", gap: 5 }}>
-        {BANNERS.map((_, i) => (
-          <div key={i} onClick={() => setIdx(i)} style={{
-            width: i === idx ? 18 : 6, height: 6, borderRadius: 3, cursor: "pointer",
-            background: i === idx ? "#fff" : "rgba(255,255,255,.5)", transition: "all .3s ease",
-          }} />
-        ))}
-      </div>
+      {list.length > 1 && (
+        <div style={{ position: "absolute", bottom: 10, right: 14, display: "flex", gap: 5 }}>
+          {list.map((_, i) => (
+            <div key={i} onClick={() => setIdx(i)} style={{
+              width: i === idx ? 18 : 6, height: 6, borderRadius: 3, cursor: "pointer",
+              background: i === idx ? "#fff" : "rgba(255,255,255,.5)", transition: "all .3s ease",
+            }} />
+          ))}
+        </div>
+      )}
     </div>
   );
 }
@@ -248,7 +253,7 @@ function RecoScroll({ items, onAdd }) {
 // ============================================================
 // SIDE DRAWER (Hamburger Menu) — Fungsional penuh
 // ============================================================
-function SideDrawer({ open, onClose }) {
+function SideDrawer({ open, onClose, settings }) {
   const [subView, setSubView] = useState(null); // null | "history" | "language" | "help" | "privacy"
   const [lang, setLang] = useState("id");
   const [faqOpen, setFaqOpen] = useState(null);
@@ -294,7 +299,7 @@ function SideDrawer({ open, onClose }) {
     { key: "privacy", icon: <Shield size={18} />, label: "Kebijakan Privasi", sub: "Syarat & ketentuan" },
   ];
 
-  const faqItems = [
+  const faqItems = (settings?.faq && settings.faq.length) ? settings.faq : [
     { q: "Bagaimana cara memesan?", a: "Scan QR code di meja Anda, pilih menu, kustomisasi sesuai selera, lalu bayar lewat QRIS atau kasir. Pesanan langsung masuk ke dapur." },
     { q: "Bisa bayar tunai?", a: "Bisa! Saat checkout, pilih 'Bayar di Kasir'. Pesanan akan masuk sistem, dan Anda tinggal bayar di kasir." },
     { q: "Berapa lama pesanan siap?", a: "Biasanya 10-15 menit tergantung jumlah pesanan. Makanan akan diantar langsung ke meja Anda." },
@@ -430,12 +435,18 @@ function SideDrawer({ open, onClose }) {
         </div>
         <div style={{ padding: "16px 20px", fontSize: 12.5, color: "#555", lineHeight: 1.7 }}>
           <div style={{ fontWeight: 700, fontSize: 14, color: "#222", marginBottom: 8 }}>Kebijakan Privasi Mie 99</div>
-          <p>Kami menghargai privasi Anda. Data yang kami kumpulkan saat pemesanan (nama, nomor ponsel, email) digunakan hanya untuk:</p>
-          <p style={{ marginTop: 8 }}><b>1. Memproses pesanan Anda</b> — Nama dan nomor meja digunakan untuk mengidentifikasi dan mengantarkan pesanan.</p>
-          <p style={{ marginTop: 8 }}><b>2. Mengirim struk digital</b> — Email digunakan untuk mengirim bukti pembayaran jika Anda memilih opsi ini.</p>
-          <p style={{ marginTop: 8 }}><b>3. Informasi promo</b> — Nomor ponsel dapat digunakan untuk mengirimkan promo, namun Anda bisa berhenti kapan saja.</p>
-          <p style={{ marginTop: 12 }}>Kami <b>tidak</b> menjual atau membagikan data Anda kepada pihak ketiga. Data pembayaran diproses sepenuhnya oleh payment gateway (Midtrans) dan tidak disimpan di server kami.</p>
-          <p style={{ marginTop: 12 }}>Dengan menggunakan layanan ini, Anda menyetujui kebijakan privasi di atas.</p>
+          {settings?.privacy ? (
+            <div style={{ whiteSpace: "pre-wrap" }}>{settings.privacy}</div>
+          ) : (
+            <>
+              <p>Kami menghargai privasi Anda. Data yang kami kumpulkan saat pemesanan (nama, nomor ponsel, email) digunakan hanya untuk:</p>
+              <p style={{ marginTop: 8 }}><b>1. Memproses pesanan Anda</b> — Nama dan nomor meja digunakan untuk mengidentifikasi dan mengantarkan pesanan.</p>
+              <p style={{ marginTop: 8 }}><b>2. Mengirim struk digital</b> — Email digunakan untuk mengirim bukti pembayaran jika Anda memilih opsi ini.</p>
+              <p style={{ marginTop: 8 }}><b>3. Informasi promo</b> — Nomor ponsel dapat digunakan untuk mengirimkan promo, namun Anda bisa berhenti kapan saja.</p>
+              <p style={{ marginTop: 12 }}>Kami <b>tidak</b> menjual atau membagikan data Anda kepada pihak ketiga.</p>
+              <p style={{ marginTop: 12 }}>Dengan menggunakan layanan ini, Anda menyetujui kebijakan privasi di atas.</p>
+            </>
+          )}
           <div style={{ marginTop: 16, padding: "12px", background: GL, borderRadius: 10, fontSize: 12, color: G }}>
             Terakhir diperbarui: Juni 2026
           </div>
@@ -640,6 +651,18 @@ export default function App() {
   const [orderId, setOrderId] = useState(null);
   const [qrisPayload, setQrisPayload] = useState(null);
   const [queueNumber, setQueueNumber] = useState(null);
+  const [settings, setSettings] = useState({ banners: [], faq: [], privacy: "", schedule: [], phone: "", mapsUrl: "" });
+
+  // Fetch settings (banner, faq, privacy, schedule)
+  useEffect(() => {
+    (async () => {
+      try {
+        const s = await api.getSettings();
+        setSettings(s);
+        setOutlet(o => ({ ...o, name: s.name || o.name, address: s.address || o.address, hours: s.hours || o.hours, phone: s.phone || o.phone, mapsUrl: s.mapsUrl || "" }));
+      } catch (e) { console.error("settings:", e); }
+    })();
+  }, []);
 
   useEffect(() => {
     if (!isLive) return;
@@ -762,7 +785,7 @@ export default function App() {
         </div>}
 
         <div style={{ flex: 1, overflowY: "auto", padding: 14 }}>
-          <BannerCarousel />
+          <BannerCarousel banners={settings.banners} />
           <OutletCard outlet={outlet} />
           {outlet.table ? (
             <div className="tap" style={{
@@ -1001,7 +1024,7 @@ export default function App() {
 
       {/* ===== MODAL & DRAWER ===== */}
       {modalItem && <ProductModal item={modalItem} onClose={() => setModalItem(null)} onAdd={addToCart} />}
-      <SideDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} />
+      <SideDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} settings={settings} />
       {processing && <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,.6)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", zIndex: 100 }}>
         <div style={{ width: 40, height: 40, border: "4px solid rgba(255,255,255,.3)", borderTopColor: "#fff", borderRadius: "50%", animation: "spin .8s linear infinite" }} />
         <div style={{ color: "#fff", marginTop: 14, fontFamily: "'Poppins',sans-serif" }}>Sedang diproses...</div>
