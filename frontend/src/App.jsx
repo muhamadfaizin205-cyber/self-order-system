@@ -117,6 +117,8 @@ body{background:#1a1a1a;font-family:'Poppins',sans-serif}
 @keyframes scaleIn{from{transform:scale(.95);opacity:0}to{transform:scale(1);opacity:1}}
 @keyframes slideLeft{from{transform:translateX(-100%)}to{transform:translateX(0)}}
 @keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
+@keyframes slideUpFade{from{opacity:0;transform:translateY(20px) scale(.96)}to{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes subtlePulse{0%,100%{box-shadow:inset 0 0 0 0 rgba(255,255,255,0)}50%{box-shadow:inset 0 0 0 100px rgba(255,255,255,.04)}}
 .tap{transition:transform .12s ease,box-shadow .12s ease}
 .tap:active{transform:scale(.96)!important;box-shadow:none!important}
 .hover-lift{transition:transform .2s ease,box-shadow .2s ease}
@@ -862,48 +864,107 @@ export default function App() {
         </div>
 
         {cartCount > 0 && <div style={{
-          position: "absolute", bottom: 16, left: 14, right: 14,
-          animation: "scaleIn .25s ease",
-          boxShadow: "0 6px 24px rgba(27,122,61,.4)",
-          borderRadius: 14,
-          overflow: "hidden",
+          position: "absolute", bottom: 18, left: 12, right: 12,
+          display: "flex", alignItems: "center", gap: 10,
+          animation: "slideUpFade .4s cubic-bezier(.34,1.56,.64,1)",
         }}>
-          {/* Header upsell */}
-          <div style={{
-            background: G, color: "#fff",
-            padding: "7px 14px", fontSize: 12, fontWeight: 600,
-            textAlign: "center", letterSpacing: ".2px",
-            borderBottom: "1px solid rgba(255,255,255,.12)",
-          }}>
-            Lengkapi pesananmu juga 🍜
-          </div>
-          {/* Cart bar 2-section */}
-          <button className="tap" onClick={() => setScreen("cart")} style={{
-            display: "flex", width: "100%", border: "none", padding: 0,
-            cursor: "pointer", fontFamily: "inherit", background: "transparent",
-          }}>
-            {/* Left: total */}
+          {/* Trash button — clear all cart */}
+          <button
+            className="tap"
+            onClick={(e) => {
+              e.stopPropagation();
+              if (window.confirm(`Hapus semua ${cartCount} item dari keranjang?`)) {
+                setCart([]);
+              }
+            }}
+            style={{
+              width: 52, height: 52, borderRadius: "50%",
+              background: "#fff", color: G,
+              border: "none", cursor: "pointer",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              boxShadow: "0 10px 24px rgba(0,0,0,.18), 0 3px 8px rgba(0,0,0,.1)",
+              flexShrink: 0, position: "relative",
+              fontFamily: "inherit",
+            }}
+            title="Hapus semua pesanan"
+          >
+            <Trash2 size={22} strokeWidth={2.2} />
             <div style={{
-              flex: 1, background: G2, color: "#fff",
-              padding: "13px 18px", display: "flex", alignItems: "center",
-            }}>
-              <div style={{ textAlign: "left", lineHeight: 1.15 }}>
-                <div style={{ fontSize: 11, opacity: .9, fontWeight: 600, letterSpacing: ".3px" }}>Total</div>
-                <div style={{ fontSize: 18, fontWeight: 800, marginTop: 2 }}>{rupiah(subtotal)}</div>
-              </div>
-            </div>
-            {/* Right: CHECK OUT */}
-            <div style={{
-              background: G, color: "#fff",
-              padding: "13px 18px", display: "flex",
-              flexDirection: "column", alignItems: "center", justifyContent: "center",
-              fontSize: 13, fontWeight: 800, letterSpacing: ".4px", lineHeight: 1.2,
-              minWidth: 110,
-            }}>
-              <div>CHECK OUT</div>
-              <div style={{ fontSize: 11.5, opacity: .9, marginTop: 3, fontWeight: 700 }}>({cartCount})</div>
-            </div>
+              position: "absolute", top: -3, right: -3,
+              background: "#ef4444", color: "#fff",
+              fontSize: 10.5, fontWeight: 800,
+              minWidth: 21, height: 21, padding: "0 6px",
+              borderRadius: 11, display: "flex",
+              alignItems: "center", justifyContent: "center",
+              border: "2.5px solid #fff",
+              boxShadow: "0 2px 4px rgba(239,68,68,.4)",
+            }}>{cartCount}</div>
           </button>
+
+          {/* Main pill bar */}
+          <div style={{
+            flex: 1, minWidth: 0,
+            boxShadow: "0 12px 28px rgba(27,122,61,.45), 0 4px 10px rgba(27,122,61,.25), inset 0 1px 0 rgba(255,255,255,.15)",
+            borderRadius: 999,
+            overflow: "hidden",
+          }}>
+            <button className="tap" onClick={() => setScreen("cart")} style={{
+              display: "flex", width: "100%", border: "none", padding: 0,
+              cursor: "pointer", fontFamily: "inherit", background: "transparent",
+              position: "relative",
+            }}>
+              {/* Left: TOTAL + Price */}
+              <div style={{
+                flex: 1, background: G2, color: "#fff",
+                padding: "14px 22px", display: "flex", alignItems: "center",
+                position: "relative", minWidth: 0,
+              }}>
+                <div style={{ textAlign: "left", lineHeight: 1.1, minWidth: 0 }}>
+                  <div style={{
+                    fontSize: 10, fontWeight: 700, opacity: .8,
+                    letterSpacing: "1.5px", textTransform: "uppercase",
+                    marginBottom: 4,
+                  }}>Total</div>
+                  <div style={{
+                    fontSize: 19, fontWeight: 900,
+                    letterSpacing: "-.5px",
+                    whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
+                  }}>{rupiah(subtotal)}</div>
+                </div>
+                {/* Subtle vertical divider */}
+                <div style={{
+                  position: "absolute", right: 0, top: "22%", bottom: "22%",
+                  width: 1, background: "rgba(255,255,255,.18)",
+                }} />
+              </div>
+              {/* Right: CHECK OUT + arrow */}
+              <div style={{
+                background: G, color: "#fff",
+                padding: "14px 20px 14px 22px", display: "flex",
+                alignItems: "center", gap: 10, lineHeight: 1.1,
+                animation: "subtlePulse 2.5s ease-in-out infinite",
+              }}>
+                <div style={{ textAlign: "left" }}>
+                  <div style={{
+                    fontSize: 13, fontWeight: 900,
+                    letterSpacing: ".8px", textTransform: "uppercase",
+                  }}>Check Out</div>
+                  <div style={{
+                    fontSize: 10, opacity: .82, marginTop: 4,
+                    fontWeight: 700, letterSpacing: "1px", textTransform: "uppercase",
+                  }}>{cartCount} Item</div>
+                </div>
+                <div style={{
+                  width: 30, height: 30, borderRadius: "50%",
+                  background: "rgba(255,255,255,.18)",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  flexShrink: 0,
+                }}>
+                  <ChevronRight size={19} strokeWidth={2.8} />
+                </div>
+              </div>
+            </button>
+          </div>
         </div>}
       </>}
 
