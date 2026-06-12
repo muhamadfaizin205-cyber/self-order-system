@@ -858,15 +858,53 @@ export default function App() {
               ))}
             </div>
           ))}
-          <div style={{ height: 90 }} />
+          <div style={{ height: 130 }} />
         </div>
 
-        {cartCount > 0 && <button className="tap" onClick={() => setScreen("cart")} style={{
-          position: "absolute", bottom: 16, left: 14, right: 14, background: G, color: "#fff", border: "none",
-          borderRadius: 14, padding: "15px 20px", display: "flex", alignItems: "center", gap: 10, fontWeight: 700,
-          fontSize: 15, cursor: "pointer", fontFamily: "inherit",
-          boxShadow: `0 6px 24px rgba(27,122,61,.4)`, animation: "scaleIn .25s ease",
-        }}><ShoppingCart size={18} /><span>{cartCount} item</span><span style={{ marginLeft: "auto" }}>{rupiah(subtotal)}</span></button>}
+        {cartCount > 0 && <div style={{
+          position: "absolute", bottom: 16, left: 14, right: 14,
+          animation: "scaleIn .25s ease",
+          boxShadow: "0 6px 24px rgba(27,122,61,.4)",
+          borderRadius: 14,
+          overflow: "hidden",
+        }}>
+          {/* Header upsell */}
+          <div style={{
+            background: G, color: "#fff",
+            padding: "7px 14px", fontSize: 12, fontWeight: 600,
+            textAlign: "center", letterSpacing: ".2px",
+            borderBottom: "1px solid rgba(255,255,255,.12)",
+          }}>
+            Lengkapi pesananmu juga 🍜
+          </div>
+          {/* Cart bar 2-section */}
+          <button className="tap" onClick={() => setScreen("cart")} style={{
+            display: "flex", width: "100%", border: "none", padding: 0,
+            cursor: "pointer", fontFamily: "inherit", background: "transparent",
+          }}>
+            {/* Left: total */}
+            <div style={{
+              flex: 1, background: G2, color: "#fff",
+              padding: "13px 18px", display: "flex", alignItems: "center",
+            }}>
+              <div style={{ textAlign: "left", lineHeight: 1.15 }}>
+                <div style={{ fontSize: 11, opacity: .9, fontWeight: 600, letterSpacing: ".3px" }}>Total</div>
+                <div style={{ fontSize: 18, fontWeight: 800, marginTop: 2 }}>{rupiah(subtotal)}</div>
+              </div>
+            </div>
+            {/* Right: CHECK OUT */}
+            <div style={{
+              background: G, color: "#fff",
+              padding: "13px 18px", display: "flex",
+              flexDirection: "column", alignItems: "center", justifyContent: "center",
+              fontSize: 13, fontWeight: 800, letterSpacing: ".4px", lineHeight: 1.2,
+              minWidth: 110,
+            }}>
+              <div>CHECK OUT</div>
+              <div style={{ fontSize: 11.5, opacity: .9, marginTop: 3, fontWeight: 700 }}>({cartCount})</div>
+            </div>
+          </button>
+        </div>}
       </>}
 
       {/* ===== CART ===== */}
