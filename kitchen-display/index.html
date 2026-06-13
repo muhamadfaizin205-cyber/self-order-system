@@ -2,63 +2,976 @@
 <html lang="id">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Dapur — Mie 99</title>
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0a0e1a">
+<title>Dapur — Mie 99 KDS</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <style>
-:root{--bg:#0f1115;--card:#1a1d24;--accent:#25a550;--green:#1aa260;--amber:#f5a623;--text:#e8eaed;--muted:#8a8f98}
-*{box-sizing:border-box;margin:0;padding:0}body{background:var(--bg);color:var(--text);font-family:'Poppins',sans-serif;min-height:100vh}
-header{display:flex;align-items:center;justify-content:space-between;padding:16px 24px;background:var(--card);border-bottom:2px solid var(--accent);position:sticky;top:0;z-index:10}
-header h1{font-size:22px;font-weight:800;letter-spacing:-.5px}header h1 span{color:var(--accent)}
-.status{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted)}
-.dot{width:10px;height:10px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green)}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;padding:24px}
-.ticket{background:var(--card);border-radius:12px;overflow:hidden;border-left:5px solid var(--amber);animation:pop .3s ease}
-@keyframes pop{from{transform:scale(.96);opacity:0}to{transform:scale(1);opacity:1}}
-.ticket-head{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;background:rgba(255,255,255,.04)}
-.queue{font-size:24px;font-weight:800;color:var(--accent)}.table-no{font-size:13px;color:var(--muted)}
-.timer{font-size:13px;font-weight:600;color:var(--amber)}
-.ticket-body{padding:12px 16px}
-.line{padding:8px 0;border-bottom:1px solid rgba(255,255,255,.06)}.line:last-child{border-bottom:none}
-.line-name{font-size:16px;font-weight:600}.line-qty{color:var(--accent);font-weight:800;margin-right:6px}
-.mods{font-size:13px;color:var(--muted);margin-top:3px}.note{font-size:13px;color:var(--amber);font-style:italic;margin-top:3px}
-.done-btn{width:100%;padding:14px;border:none;background:var(--green);color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit}
-.done-btn:hover{filter:brightness(1.1)}.done-btn:active{transform:scale(.98)}
-.empty{grid-column:1/-1;text-align:center;padding:80px;color:var(--muted);font-size:18px}
-@media(max-width:600px){.grid{grid-template-columns:1fr}}
+:root{
+  --bg:#0a0e1a;--card:#161b2e;--card-2:#1f2540;--card-3:#2a3052;
+  --accent:#25a550;--accent-br:#2dd16a;--accent-dim:#0f5328;
+  --warn:#f59e0b;--danger:#ef4444;--info:#3b82f6;--purple:#a855f7;
+  --text:#f1f5f9;--text-dim:#94a3b8;--text-mute:#64748b;--border:#2a3052;
+}
+*{box-sizing:border-box;margin:0;padding:0;font-family:'Inter',sans-serif;-webkit-tap-highlight-color:transparent}
+html,body{overscroll-behavior:none}
+body{background:var(--bg);color:var(--text);min-height:100dvh;font-size:14px;overflow-x:hidden;padding-bottom:env(safe-area-inset-bottom)}
+button{font-family:inherit;cursor:pointer;border:none;outline:none;color:inherit}
+input,select{font-family:inherit;outline:none}
+svg{display:block;flex-shrink:0}
+
+/* ==================== HEADER (mobile-first) ==================== */
+.header{
+  position:sticky;top:0;z-index:30;
+  background:linear-gradient(180deg,#11162a 0%,#0d1224 100%);
+  border-bottom:1px solid var(--border);
+  padding:12px 14px 10px;
+  padding-top:calc(12px + env(safe-area-inset-top));
+}
+.header-top{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.brand{display:flex;align-items:center;gap:10px;min-width:0}
+.brand-logo{
+  width:38px;height:38px;border-radius:11px;flex-shrink:0;
+  background:linear-gradient(135deg,#1b7a3d 0%,#25a550 60%,#2dd16a 100%);
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 4px 14px rgba(37,165,80,.35),inset 0 1px 0 rgba(255,255,255,.18);
+  position:relative;
+}
+.brand-logo svg{color:#fff}
+.brand-name{font-size:15.5px;font-weight:800;letter-spacing:-.3px;line-height:1.1}
+.brand-sub{font-size:10px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.7px;font-weight:600;margin-top:2px}
+
+.header-actions{display:flex;align-items:center;gap:7px}
+.live-pill{display:flex;align-items:center;gap:6px;padding:6px 10px;background:rgba(45,209,106,.12);border:1px solid rgba(45,209,106,.3);border-radius:999px;font-size:11px;font-weight:700;color:var(--accent-br)}
+.live-dot{width:6.5px;height:6.5px;border-radius:50%;background:var(--accent-br);box-shadow:0 0 8px var(--accent-br);animation:blink 1.8s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.35}}
+.icon-btn{
+  width:38px;height:38px;border-radius:11px;
+  background:var(--card-2);border:1px solid var(--border);
+  display:flex;align-items:center;justify-content:center;color:var(--text);
+  transition:.15s;position:relative;
+}
+.icon-btn:active{transform:scale(.92)}
+.icon-btn.active{background:var(--accent-dim);border-color:var(--accent);color:var(--accent-br)}
+.icon-btn.danger{background:rgba(239,68,68,.1);border-color:rgba(239,68,68,.3);color:var(--danger)}
+.icon-btn.urgent{animation:pulseUrgent 1s infinite}
+@keyframes pulseUrgent{0%,100%{box-shadow:0 0 0 0 rgba(239,68,68,.5)}50%{box-shadow:0 0 0 6px rgba(239,68,68,0)}}
+
+/* Stat strip */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:12px}
+.stat{
+  background:var(--card-2);border:1px solid var(--border);
+  border-radius:12px;padding:10px 8px;text-align:center;
+  position:relative;overflow:hidden;
+}
+.stat::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:currentColor;opacity:.7}
+.stat.warn{color:var(--warn)}.stat.ok{color:var(--accent-br)}.stat.info{color:var(--info)}.stat.danger{color:var(--danger)}
+.stat-icon{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;margin-bottom:2px;opacity:.9}
+.stat-label{font-size:9.5px;color:var(--text-dim);font-weight:700;text-transform:uppercase;letter-spacing:.4px;line-height:1}
+.stat-value{font-size:18px;font-weight:900;margin-top:4px;line-height:1;font-variant-numeric:tabular-nums}
+
+/* ==================== TOOLBAR ==================== */
+.toolbar{padding:10px 14px;background:var(--bg);position:sticky;top:0;z-index:20}
+.tabs{display:grid;grid-template-columns:1fr 1fr;gap:6px;background:var(--card-2);padding:4px;border-radius:13px;border:1px solid var(--border)}
+.tab{
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  padding:11px 10px;border-radius:9px;background:transparent;color:var(--text-dim);
+  font-size:13px;font-weight:700;transition:.18s;
+}
+.tab.active{background:var(--accent);color:#fff;box-shadow:0 4px 12px rgba(37,165,80,.4)}
+.tab-count{padding:2px 8px;background:rgba(255,255,255,.16);border-radius:999px;font-size:11px;font-weight:800;min-width:22px;text-align:center;font-variant-numeric:tabular-nums}
+.tab:not(.active) .tab-count{background:var(--card-3);color:var(--text-dim)}
+
+.filters{display:flex;gap:8px;margin-top:10px;align-items:center}
+.search-wrap{position:relative;flex:1;min-width:0}
+.search{
+  width:100%;padding:11px 12px 11px 38px;background:var(--card-2);
+  border:1px solid var(--border);border-radius:12px;color:var(--text);font-size:13.5px;
+}
+.search::placeholder{color:var(--text-mute)}
+.search:focus{border-color:var(--accent)}
+.search-icon{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--text-mute);pointer-events:none}
+.sort-select{
+  padding:11px 32px 11px 12px;background:var(--card-2);border:1px solid var(--border);
+  border-radius:12px;color:var(--text);font-size:13px;font-weight:600;
+  appearance:none;-webkit-appearance:none;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>");
+  background-repeat:no-repeat;background-position:right 10px center;
+}
+.sort-select:focus{border-color:var(--accent)}
+
+.user-chip{display:flex;align-items:center;gap:7px;padding:7px 12px;background:var(--card-2);border:1px solid var(--border);border-radius:999px;font-size:11.5px;font-weight:600;margin-top:10px;width:fit-content;color:var(--text-dim)}
+.user-chip svg{color:var(--accent-br)}
+
+/* ==================== CONTENT / GRID ==================== */
+.content{padding:6px 14px 96px}
+.grid{display:flex;flex-direction:column;gap:12px}
+
+/* Empty state */
+.empty{
+  text-align:center;padding:60px 24px;color:var(--text-dim);
+  background:var(--card);border:1px dashed var(--border);border-radius:18px;
+}
+.empty-icon{
+  width:64px;height:64px;border-radius:50%;margin:0 auto 16px;
+  background:var(--card-2);display:flex;align-items:center;justify-content:center;color:var(--text-mute);
+}
+.empty-title{font-size:15px;font-weight:700;color:var(--text);margin-bottom:6px}
+.empty-sub{font-size:12.5px;line-height:1.55;color:var(--text-mute)}
+.empty-live{margin-top:14px;display:inline-flex;align-items:center;gap:7px;padding:6px 12px;background:rgba(45,209,106,.1);border:1px solid rgba(45,209,106,.25);border-radius:999px;font-size:11px;font-weight:700;color:var(--accent-br)}
+
+/* ==================== TICKET ==================== */
+.ticket{
+  background:var(--card);border:1px solid var(--border);border-radius:18px;
+  overflow:hidden;position:relative;
+  box-shadow:0 4px 18px rgba(0,0,0,.25);
+  animation:cardIn .35s cubic-bezier(.2,.9,.3,1.3);
+}
+@keyframes cardIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.ticket.urgent{border-color:rgba(239,68,68,.5);box-shadow:0 4px 18px rgba(239,68,68,.18)}
+.ticket.priority{border-color:rgba(37,165,80,.45)}
+.ticket.done{opacity:.78}
+.ticket.brand-new{animation:flashNew 1.2s ease-in-out infinite}
+@keyframes flashNew{0%,100%{box-shadow:0 4px 18px rgba(45,209,106,.15)}50%{box-shadow:0 4px 30px rgba(45,209,106,.55),0 0 0 2px var(--accent-br) inset}}
+.new-badge{
+  position:absolute;top:10px;right:10px;z-index:2;
+  display:inline-flex;align-items:center;gap:4px;
+  padding:4px 10px;background:linear-gradient(135deg,#2dd16a,#1b7a3d);
+  color:#fff;font-size:10px;font-weight:800;letter-spacing:.6px;
+  border-radius:999px;box-shadow:0 4px 12px rgba(45,209,106,.5);
+  text-transform:uppercase;
+}
+
+.ticket-head{
+  display:flex;justify-content:space-between;align-items:flex-start;gap:12px;
+  padding:14px 16px 12px;background:linear-gradient(180deg,rgba(255,255,255,.025) 0%,transparent 100%);
+  border-bottom:1px solid var(--border);
+}
+.queue{font-size:30px;font-weight:900;color:var(--accent-br);line-height:1;letter-spacing:-.5px;font-variant-numeric:tabular-nums}
+.queue-meta{display:flex;align-items:center;gap:8px;margin-top:7px;flex-wrap:wrap}
+.table-badge{
+  display:inline-flex;align-items:center;gap:5px;padding:3px 9px;
+  background:rgba(59,130,246,.15);color:#7eb6ff;border:1px solid rgba(59,130,246,.3);
+  border-radius:999px;font-size:11px;font-weight:700;
+}
+.queue-meta .cust{font-size:12px;color:var(--text-dim);font-weight:600}
+
+.timer-box{text-align:right;flex-shrink:0}
+.timer-val{font-size:22px;font-weight:900;line-height:1;font-variant-numeric:tabular-nums}
+.timer-val.warn{color:var(--warn)}.timer-val.danger{color:var(--danger)}
+.timer-label{font-size:9.5px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.5px;font-weight:700;margin-top:3px}
+.items-count{font-size:11px;color:var(--text-mute);margin-top:3px;font-weight:600}
+
+/* Progress */
+.progress{height:5px;background:var(--card-2);position:relative;overflow:hidden}
+.progress-bar{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent-br));transition:width .35s ease}
+.progress-text{padding:7px 16px;font-size:10.5px;color:var(--text-dim);font-weight:600;background:rgba(0,0,0,.18)}
+
+/* Body items */
+.ticket-body{padding:6px 6px 4px}
+.item-line{padding:9px 10px;border-radius:10px;transition:.15s}
+.item-line+.item-line{border-top:1px solid rgba(42,48,82,.5)}
+.item-row{display:flex;align-items:flex-start;gap:11px}
+.item-checkbox{
+  width:30px;height:30px;border-radius:9px;flex-shrink:0;
+  border:2px solid var(--text-mute);background:transparent;
+  display:flex;align-items:center;justify-content:center;color:#fff;
+  transition:.15s;
+}
+.item-checkbox.checked{background:var(--accent);border-color:var(--accent)}
+.item-checkbox:active{transform:scale(.9)}
+.item-info{flex:1;min-width:0}
+.item-name{font-size:14px;font-weight:700;line-height:1.4;display:flex;align-items:flex-start;gap:8px;flex-wrap:wrap}
+.item-name.checked{text-decoration:line-through;color:var(--text-mute)}
+.qty-badge{display:inline-flex;align-items:center;justify-content:center;min-width:26px;height:22px;padding:0 7px;background:var(--accent-dim);color:var(--accent-br);border-radius:6px;font-size:11.5px;font-weight:800;border:1px solid rgba(45,209,106,.3)}
+.item-mods{font-size:11.5px;color:var(--accent-br);margin-top:3px;font-weight:600}
+.item-notes{
+  font-size:11.5px;color:#fcd34d;margin-top:5px;padding:5px 8px;
+  background:rgba(252,211,77,.08);border-left:2.5px solid #fcd34d;border-radius:0 6px 6px 0;
+  display:flex;align-items:flex-start;gap:6px;line-height:1.4;font-weight:500;
+}
+
+/* Footer button */
+.ticket-foot{padding:12px 14px 14px;border-top:1px solid var(--border);background:rgba(0,0,0,.12)}
+.btn{
+  width:100%;display:flex;align-items:center;justify-content:center;gap:8px;
+  padding:13px;border-radius:12px;font-size:13.5px;font-weight:800;letter-spacing:.2px;
+  transition:.15s;
+}
+.btn:active{transform:scale(.98)}
+.btn-done{background:linear-gradient(135deg,var(--accent) 0%,var(--accent-br) 100%);color:#fff;box-shadow:0 6px 16px rgba(37,165,80,.45)}
+.btn-back{background:var(--card-2);color:var(--text);border:1px solid var(--border)}
+
+/* ==================== RINGING ALERT ==================== */
+.ring-alert{
+  position:fixed;top:-100px;left:14px;right:14px;z-index:60;
+  display:flex;align-items:center;gap:12px;
+  padding:14px 16px;background:linear-gradient(135deg,#ef4444,#dc2626);
+  border-radius:16px;color:#fff;
+  box-shadow:0 16px 40px rgba(239,68,68,.5);
+  transition:top .35s cubic-bezier(.2,.9,.3,1.3);
+}
+.ring-alert.show{top:calc(14px + env(safe-area-inset-top))}
+.ring-icon-wrap{width:44px;height:44px;border-radius:12px;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;animation:shake .5s infinite}
+@keyframes shake{0%,100%{transform:rotate(0)}25%{transform:rotate(-12deg)}75%{transform:rotate(12deg)}}
+.ring-text{font-size:14.5px;font-weight:800;line-height:1.1}
+.ring-sub{font-size:11.5px;opacity:.9;margin-top:3px}
+.ring-stop{margin-left:auto;padding:9px 14px;background:#fff;color:#dc2626;border-radius:10px;font-size:12.5px;font-weight:800}
+
+/* ==================== MODAL (settings + confirm) ==================== */
+.modal-bg{
+  position:fixed;inset:0;background:rgba(0,0,0,.6);backdrop-filter:blur(4px);
+  z-index:70;display:none;align-items:flex-end;justify-content:center;
+}
+.modal-bg.show{display:flex;animation:fadeIn .2s ease}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.modal{
+  width:100%;max-width:520px;background:var(--card);
+  border-radius:22px 22px 0 0;
+  border:1px solid var(--border);border-bottom:0;
+  max-height:90dvh;display:flex;flex-direction:column;
+  animation:sheetUp .35s cubic-bezier(.2,.9,.3,1.3);
+  padding-bottom:env(safe-area-inset-bottom);
+}
+@keyframes sheetUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.modal-grip{width:40px;height:4px;background:var(--card-3);border-radius:99px;margin:10px auto 0}
+.modal-head{display:flex;align-items:center;justify-content:space-between;padding:14px 18px 12px;border-bottom:1px solid var(--border)}
+.modal-title{font-size:15.5px;font-weight:800;display:flex;align-items:center;gap:9px}
+.modal-close{width:32px;height:32px;border-radius:9px;background:var(--card-2);display:flex;align-items:center;justify-content:center;color:var(--text-dim)}
+.modal-body{padding:16px 18px 24px;overflow-y:auto}
+
+.setting-group{margin-bottom:20px}
+.setting-group:last-child{margin-bottom:0}
+.setting-label{font-size:11px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.7px;font-weight:700;margin-bottom:10px}
+
+.sound-options{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.sound-opt{
+  padding:12px 10px;background:var(--card-2);border:1.5px solid var(--border);
+  border-radius:13px;text-align:left;transition:.15s;color:var(--text);
+}
+.sound-opt:active{transform:scale(.97)}
+.sound-opt.selected{border-color:var(--accent);background:var(--accent-dim)}
+.sound-icon{width:28px;height:28px;border-radius:8px;background:var(--card-3);display:flex;align-items:center;justify-content:center;margin-bottom:7px;color:var(--accent-br)}
+.sound-opt.selected .sound-icon{background:var(--accent);color:#fff}
+.sound-name{font-size:12.5px;font-weight:700}
+.sound-desc{font-size:10.5px;color:var(--text-dim);margin-top:2px;font-weight:500}
+
+.slider-wrap{display:flex;align-items:center;gap:12px}
+.slider{flex:1;-webkit-appearance:none;height:6px;border-radius:99px;background:var(--card-3);outline:none}
+.slider::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:20px;height:20px;background:var(--accent-br);border-radius:50%;cursor:pointer;box-shadow:0 2px 6px rgba(45,209,106,.5)}
+.slider::-moz-range-thumb{width:20px;height:20px;background:var(--accent-br);border-radius:50%;cursor:pointer;border:none}
+.slider-val{font-size:13px;font-weight:800;color:var(--accent-br);min-width:42px;text-align:right;font-variant-numeric:tabular-nums}
+.btn-test{width:100%;margin-top:10px;padding:11px;background:var(--card-2);border:1px solid var(--border);color:var(--text);border-radius:12px;font-size:12.5px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:8px}
+.btn-test:active{transform:scale(.98)}
+
+.toggle-row{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:11px 0}
+.toggle-row+.toggle-row{border-top:1px solid var(--border)}
+.toggle-info{flex:1;min-width:0}
+.toggle-title{font-size:13px;font-weight:700}
+.toggle-desc{font-size:11px;color:var(--text-dim);margin-top:2px;line-height:1.4}
+.toggle{position:relative;width:44px;height:26px;background:var(--card-3);border-radius:99px;transition:.18s;flex-shrink:0}
+.toggle.on{background:var(--accent)}
+.toggle-knob{position:absolute;top:3px;left:3px;width:20px;height:20px;background:#fff;border-radius:50%;transition:.18s;box-shadow:0 2px 4px rgba(0,0,0,.3)}
+.toggle.on .toggle-knob{left:21px}
+
+/* Confirm dialog */
+.confirm{
+  width:calc(100% - 28px);max-width:340px;
+  background:var(--card);border:1px solid var(--border);
+  border-radius:20px;padding:22px 20px 18px;text-align:center;
+  margin:auto;
+  animation:popIn .3s cubic-bezier(.2,.9,.3,1.3);
+}
+@keyframes popIn{from{opacity:0;transform:scale(.85)}to{opacity:1;transform:scale(1)}}
+.confirm-icon{width:54px;height:54px;border-radius:50%;margin:0 auto 14px;display:flex;align-items:center;justify-content:center}
+.confirm-icon.warn{background:rgba(245,158,11,.15);color:var(--warn)}
+.confirm-icon.danger{background:rgba(239,68,68,.15);color:var(--danger)}
+.confirm-icon.info{background:rgba(45,209,106,.15);color:var(--accent-br)}
+.confirm-title{font-size:16px;font-weight:800}
+.confirm-msg{font-size:13px;color:var(--text-dim);margin-top:7px;line-height:1.5}
+.confirm-actions{display:flex;gap:8px;margin-top:18px}
+.confirm-actions button{flex:1;padding:12px;border-radius:11px;font-size:13.5px;font-weight:700}
+.btn-cancel{background:var(--card-2);color:var(--text);border:1px solid var(--border)}
+.btn-yes{background:var(--accent);color:#fff;box-shadow:0 4px 12px rgba(37,165,80,.4)}
+.btn-yes.danger{background:var(--danger);box-shadow:0 4px 12px rgba(239,68,68,.4)}
+.modal-bg.center{align-items:center}
+
+/* Toast */
+.toast-host{position:fixed;top:14px;left:14px;right:14px;z-index:80;display:flex;flex-direction:column;gap:8px;pointer-events:none;padding-top:env(safe-area-inset-top)}
+.toast{
+  pointer-events:auto;background:var(--card-2);border:1px solid var(--border);
+  border-radius:13px;padding:11px 14px;font-size:13px;font-weight:600;color:var(--text);
+  display:flex;align-items:center;gap:10px;
+  box-shadow:0 10px 28px rgba(0,0,0,.4);
+  animation:toastIn .35s cubic-bezier(.2,.9,.3,1.3);
+}
+@keyframes toastIn{from{opacity:0;transform:translateY(-12px)}to{opacity:1;transform:translateY(0)}}
+.toast.error{border-color:rgba(239,68,68,.4);background:linear-gradient(135deg,rgba(239,68,68,.95),rgba(220,38,38,.95));color:#fff}
+.toast.success{border-color:rgba(45,209,106,.4);background:linear-gradient(135deg,rgba(37,165,80,.95),rgba(45,209,106,.95));color:#fff}
+.toast-ic{width:26px;height:26px;border-radius:50%;background:rgba(255,255,255,.2);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+
+/* ==================== DESKTOP (≥768px) ==================== */
+@media (min-width:768px){
+  .header{padding:14px 24px 12px}
+  .stats{grid-template-columns:repeat(4,minmax(0,180px));justify-content:flex-start;margin-top:0}
+  .header-top{flex-wrap:nowrap}
+  .header-top .stats{margin-left:auto;margin-top:0}
+  .stat{padding:10px 14px;text-align:left;display:flex;align-items:center;gap:12px}
+  .stat::before{display:none}
+  .stat-left{display:flex;flex-direction:column;text-align:left}
+  .stat-icon{margin:0}
+  .toolbar{padding:14px 24px;display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+  .tabs{width:auto;grid-template-columns:auto auto}
+  .filters{margin-top:0;flex:1;justify-content:flex-end}
+  .search-wrap{max-width:320px}
+  .user-chip{margin-top:0}
+  .content{padding:14px 24px 40px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:16px}
+  .ring-alert{left:auto;right:24px;top:-100px;width:380px}
+  .ring-alert.show{top:24px}
+  .modal-bg{align-items:center}
+  .modal{max-width:560px;border-radius:22px;border-bottom:1px solid var(--border)}
+  .sound-options{grid-template-columns:repeat(3,1fr)}
+}
 </style>
 </head>
 <body>
-<header>
-  <h1>🍜 Mie 99 <span>· Dapur</span></h1>
-  <div class="status"><span class="dot"></span><span>Real-time aktif</span></div>
-</header>
-<div class="grid" id="grid"><div class="empty">Memuat pesanan...</div></div>
 
+<!-- ============================================================
+     AUTH GUARD
+============================================================ -->
 <script>
+(function(){
+  const userStr=sessionStorage.getItem("mie99_user");
+  if(!userStr){window.location.href="/login.html";return}
+  const user=JSON.parse(userStr);
+  if(!["dapur","admin"].includes(user.role)){
+    sessionStorage.removeItem("mie99_user");
+    window.location.href="/login.html";return;
+  }
+  window.currentUser=user;
+})();
+</script>
+
+<!-- ============================================================
+     ICON LIBRARY (inline SVG — render dengan data-icon attribute)
+     Gaya: outline 1.75px, stroke-round, ukuran 24 — selaras Lucide
+============================================================ -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <!-- LOGO: huruf M99 monogram di dalam mangkuk minimalis -->
+    <symbol id="i-logo" viewBox="0 0 32 32">
+      <path d="M4 13.5h24l-1.6 9a4 4 0 0 1-4 3.3H9.6a4 4 0 0 1-4-3.3L4 13.5z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+      <path d="M2.5 13.5h27" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+      <path d="M11 9.5c0-1.5 1-2.5 2.5-2.5M16 9.5c0-1.5 1-2.5 2.5-2.5M21 9.5c0-1.5 1-2.5 2.5-2.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" fill="none"/>
+    </symbol>
+    <symbol id="i-flame" viewBox="0 0 24 24"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 17c1.4 0 2.5-1.1 2.5-2.5 0-1.2-1-2.2-2.5-3.5 0 0 1-1 1-2.5 0-2.5-1.5-4-3-4.5 1 4-3 6-3 9 0 2.8 2.2 5 5 5s5-2.2 5-5c0-2.4-1.3-4.1-2.5-5.5 0 1.5-.5 2.5-2 2.5z" stroke="currentColor" stroke-width="1.7" fill="none" stroke-linejoin="round"/></symbol>
+    <symbol id="i-check-circle" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.7" fill="none"/><path d="m8 12 3 3 5-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/></symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.7" fill="none"/><path d="M12 7v5l3 2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" fill="none"/></symbol>
+    <symbol id="i-alert" viewBox="0 0 24 24"><path d="M10.3 3.9 2.6 17a2 2 0 0 0 1.7 3h15.4a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" fill="none"/><path d="M12 9v4M12 17h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7" stroke="currentColor" stroke-width="1.8" fill="none"/><path d="m20 20-3.5-3.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+    <symbol id="i-chef" viewBox="0 0 24 24"><path d="M6 12.5c-2 0-3-1.7-3-3.5C3 6.5 5 5 7 5c.5-1.8 2.4-3 4.5-3S15.5 3.2 16 5c2 0 4 1.5 4 4 0 1.8-1 3.5-3 3.5" stroke="currentColor" stroke-width="1.7" fill="none" stroke-linejoin="round"/><path d="M6 12.5h12V19a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2v-6.5z" stroke="currentColor" stroke-width="1.7" fill="none" stroke-linejoin="round"/></symbol>
+    <symbol id="i-bell" viewBox="0 0 24 24"><path d="M6 17h12l-1.5-2V10a4.5 4.5 0 0 0-9 0v5L6 17z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" fill="none"/><path d="M10 20a2 2 0 0 0 4 0" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" fill="none"/></symbol>
+    <symbol id="i-bell-ringing" viewBox="0 0 24 24"><path d="M6 17h12l-1.5-2V10a4.5 4.5 0 0 0-9 0v5L6 17z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" fill="none"/><path d="M10 20a2 2 0 0 0 4 0" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" fill="none"/><path d="M3 8c.5-1.5 1.5-3 3-4M21 8c-.5-1.5-1.5-3-3-4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" fill="none"/></symbol>
+    <symbol id="i-fullscreen" viewBox="0 0 24 24"><path d="M4 9V5a1 1 0 0 1 1-1h4M15 4h4a1 1 0 0 1 1 1v4M20 15v4a1 1 0 0 1-1 1h-4M9 20H5a1 1 0 0 1-1-1v-4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" fill="none"/></symbol>
+    <symbol id="i-logout" viewBox="0 0 24 24"><path d="M9 4H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" fill="none"/><path d="m16 8 4 4-4 4M20 12H10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" fill="none"/></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12 5 5 9-11" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" fill="none"/></symbol>
+    <symbol id="i-undo" viewBox="0 0 24 24"><path d="M3 10h11a6 6 0 0 1 0 12H9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" fill="none"/><path d="m7 6-4 4 4 4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" fill="none"/></symbol>
+    <symbol id="i-zap" viewBox="0 0 24 24"><path d="M13 3 4 14h7l-1 7 9-11h-7l1-7z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" fill="currentColor"/></symbol>
+    <symbol id="i-note" viewBox="0 0 24 24"><path d="M5 4h11l4 4v12a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" fill="none"/><path d="M15 4v5h5M8 13h8M8 17h6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></symbol>
+    <symbol id="i-table" viewBox="0 0 24 24"><path d="M3 8h18M5 8v10M19 8v10M8 8V5h8v3" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" fill="none"/></symbol>
+    <symbol id="i-empty-plate" viewBox="0 0 24 24"><ellipse cx="12" cy="14" rx="9" ry="3.5" stroke="currentColor" stroke-width="1.6" fill="none"/><ellipse cx="12" cy="14" rx="5" ry="2" stroke="currentColor" stroke-width="1.4" fill="none" opacity=".5"/></symbol>
+    <symbol id="i-hourglass" viewBox="0 0 24 24"><path d="M6 3h12M6 21h12M7 3v3.5a5 5 0 0 0 2 4l2 1.5-2 1.5a5 5 0 0 0-2 4V21M17 3v3.5a5 5 0 0 1-2 4l-2 1.5 2 1.5a5 5 0 0 1 2 4V21" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" fill="none"/></symbol>
+    <symbol id="i-list-check" viewBox="0 0 24 24"><path d="m3 7 2 2 4-4M3 13l2 2 4-4M3 19l2 2 4-4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" fill="none"/><path d="M13 6h8M13 12h8M13 18h8" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></symbol>
+    <symbol id="i-volume" viewBox="0 0 24 24"><path d="M11 5 6 9H3v6h3l5 4V5z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" fill="none"/><path d="M16 9c1.5 1 1.5 5 0 6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" fill="none"/><path d="M19 6c3 2.5 3 9.5 0 12" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" fill="none"/></symbol>
+    <!-- Tone icons -->
+    <symbol id="i-tone-bell" viewBox="0 0 24 24"><path d="M6 17h12l-1.5-2V10a4.5 4.5 0 0 0-9 0v5L6 17zM10 20a2 2 0 0 0 4 0" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round" fill="none"/></symbol>
+    <symbol id="i-tone-chime" viewBox="0 0 24 24"><path d="M12 3v18M7 6c.8 1.4 1.5 3 1.5 6s-.7 4.6-1.5 6M17 6c-.8 1.4-1.5 3-1.5 6s.7 4.6 1.5 6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" fill="none"/></symbol>
+    <symbol id="i-tone-door" viewBox="0 0 24 24"><path d="M6 3h12v18H6z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" fill="none"/><circle cx="14" cy="12" r="1" fill="currentColor"/></symbol>
+    <symbol id="i-tone-alert" viewBox="0 0 24 24"><path d="M3 11c4-1 4-7 9-7s5 6 9 7c-4 1-4 7-9 7s-5-6-9-7z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" fill="none"/></symbol>
+    <symbol id="i-tone-melody" viewBox="0 0 24 24"><path d="M9 18V6l10-2v12" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" fill="none"/><circle cx="7" cy="18" r="2" stroke="currentColor" stroke-width="1.7" fill="none"/><circle cx="17" cy="16" r="2" stroke="currentColor" stroke-width="1.7" fill="none"/></symbol>
+    <symbol id="i-tone-beep" viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="12" rx="2" stroke="currentColor" stroke-width="1.7" fill="none"/><path d="M7 12h2M11 10v4M14 12h3" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+  </defs>
+</svg>
+
+<!-- ============================================================
+     HEADER
+============================================================ -->
+<div class="header">
+  <div class="header-top">
+    <div class="brand">
+      <div class="brand-logo"><svg width="22" height="22"><use href="#i-logo"/></svg></div>
+      <div>
+        <div class="brand-name">Mie 99</div>
+        <div class="brand-sub">Kitchen Display</div>
+      </div>
+    </div>
+    <div class="header-actions">
+      <div class="live-pill"><span class="live-dot"></span>LIVE</div>
+      <button class="icon-btn" id="fs-btn" onclick="toggleFullscreen()" aria-label="Fullscreen"><svg width="18" height="18"><use href="#i-fullscreen"/></svg></button>
+      <button class="icon-btn" id="sound-btn" onclick="openSettings()" aria-label="Pengaturan Suara"><svg width="18" height="18"><use href="#i-bell"/></svg></button>
+      <button class="icon-btn danger" onclick="logout()" aria-label="Keluar"><svg width="18" height="18"><use href="#i-logout"/></svg></button>
+    </div>
+  </div>
+
+  <div class="stats">
+    <div class="stat warn"><div class="stat-icon"><svg width="18" height="18"><use href="#i-flame"/></svg></div><div class="stat-left"><div class="stat-label">Antrean</div><div class="stat-value" id="h-queue">0</div></div></div>
+    <div class="stat ok"><div class="stat-icon"><svg width="18" height="18"><use href="#i-check-circle"/></svg></div><div class="stat-left"><div class="stat-label">Selesai</div><div class="stat-value" id="h-done">0</div></div></div>
+    <div class="stat info"><div class="stat-icon"><svg width="18" height="18"><use href="#i-clock"/></svg></div><div class="stat-left"><div class="stat-label">Rata Waktu</div><div class="stat-value" id="h-avg">—</div></div></div>
+    <div class="stat danger"><div class="stat-icon"><svg width="18" height="18"><use href="#i-alert"/></svg></div><div class="stat-left"><div class="stat-label">Urgent</div><div class="stat-value" id="h-urgent">0</div></div></div>
+  </div>
+</div>
+
+<!-- ============================================================
+     TOOLBAR
+============================================================ -->
+<div class="toolbar">
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('active',this)">
+      <svg width="16" height="16"><use href="#i-flame"/></svg>
+      <span>Aktif</span>
+      <span class="tab-count" id="c-active">0</span>
+    </button>
+    <button class="tab" onclick="switchTab('done',this)">
+      <svg width="16" height="16"><use href="#i-check-circle"/></svg>
+      <span>Selesai</span>
+      <span class="tab-count" id="c-done">0</span>
+    </button>
+  </div>
+
+  <div class="filters">
+    <div class="search-wrap">
+      <span class="search-icon"><svg width="16" height="16"><use href="#i-search"/></svg></span>
+      <input class="search" id="search-input" placeholder="Cari meja atau menu..." oninput="render()">
+    </div>
+    <select class="sort-select" id="sort-select" onchange="render()">
+      <option value="oldest">Tertua dulu</option>
+      <option value="newest">Terbaru dulu</option>
+      <option value="urgent">Paling urgent</option>
+      <option value="table">Nomor meja</option>
+    </select>
+  </div>
+
+  <div class="user-chip">
+    <svg width="14" height="14"><use href="#i-chef"/></svg>
+    <span id="user-name">Staff Dapur</span>
+  </div>
+</div>
+
+<!-- ============================================================
+     CONTENT
+============================================================ -->
+<div class="content">
+  <div class="grid" id="grid">
+    <div class="empty">
+      <div class="empty-icon"><svg width="28" height="28"><use href="#i-hourglass"/></svg></div>
+      <div class="empty-title">Memuat pesanan...</div>
+    </div>
+  </div>
+</div>
+
+<!-- Ringing alert -->
+<div class="ring-alert" id="ring-alert">
+  <div class="ring-icon-wrap"><svg width="22" height="22"><use href="#i-bell-ringing"/></svg></div>
+  <div>
+    <div class="ring-text">Pesanan Baru!</div>
+    <div class="ring-sub" id="ring-sub">Cek antrean dapur</div>
+  </div>
+  <button class="ring-stop" onclick="stopRinging()">Diterima</button>
+</div>
+
+<!-- Settings modal (bottom sheet di mobile, center di desktop) -->
+<div class="modal-bg" id="settings-modal" onclick="if(event.target===this)closeSettings()">
+  <div class="modal">
+    <div class="modal-grip"></div>
+    <div class="modal-head">
+      <div class="modal-title"><svg width="20" height="20"><use href="#i-bell"/></svg>Pengaturan Suara</div>
+      <button class="modal-close" onclick="closeSettings()" aria-label="Tutup"><svg width="16" height="16"><use href="#i-x"/></svg></button>
+    </div>
+    <div class="modal-body">
+      <div class="setting-group">
+        <div class="setting-label">Pilih Nada Notifikasi</div>
+        <div class="sound-options" id="sound-options"></div>
+      </div>
+      <div class="setting-group">
+        <div class="setting-label">Volume</div>
+        <div class="slider-wrap">
+          <input type="range" class="slider" id="volume-slider" min="0" max="100" value="80" oninput="setVolume(this.value)">
+          <div class="slider-val" id="volume-val">80%</div>
+        </div>
+        <button class="btn-test" onclick="testSound()"><svg width="16" height="16"><use href="#i-volume"/></svg>Test Suara</button>
+      </div>
+      <div class="setting-group">
+        <div class="setting-label">Opsi</div>
+        <div class="toggle-row">
+          <div class="toggle-info">
+            <div class="toggle-title">Suara notifikasi</div>
+            <div class="toggle-desc">Bunyi saat pesanan baru masuk</div>
+          </div>
+          <button class="toggle" id="t-sound" onclick="toggleSound()"><div class="toggle-knob"></div></button>
+        </div>
+        <div class="toggle-row">
+          <div class="toggle-info">
+            <div class="toggle-title">Ringing terus-menerus</div>
+            <div class="toggle-desc">Bunyi berulang sampai Anda klik "Diterima"</div>
+          </div>
+          <button class="toggle" id="t-persist" onclick="togglePersist()"><div class="toggle-knob"></div></button>
+        </div>
+        <div class="toggle-row">
+          <div class="toggle-info">
+            <div class="toggle-title">Flash visual</div>
+            <div class="toggle-desc">Kartu pesanan baru berkedip hijau</div>
+          </div>
+          <button class="toggle" id="t-flash" onclick="toggleFlash()"><div class="toggle-knob"></div></button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Confirm dialog -->
+<div class="modal-bg center" id="confirm-modal" onclick="if(event.target===this)confirmCancel()">
+  <div class="confirm">
+    <div class="confirm-icon" id="confirm-icon"><svg width="26" height="26"><use href="#i-check-circle"/></svg></div>
+    <div class="confirm-title" id="confirm-title">Konfirmasi</div>
+    <div class="confirm-msg" id="confirm-msg">Yakin?</div>
+    <div class="confirm-actions">
+      <button class="btn-cancel" onclick="confirmCancel()">Batal</button>
+      <button class="btn-yes" id="confirm-yes" onclick="confirmAccept()">Lanjut</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast host -->
+<div class="toast-host" id="toast-host"></div>
+
+<!-- ============================================================
+     APP LOGIC (data layer & flow tidak berubah)
+============================================================ -->
+<script>
+// SUPABASE
 const SB_URL="https://lhcbbupqhpljhtcdrloy.supabase.co";
-const SB_KEY="sb_publishable_uc3y6YCR6wSKCCEajArRgQ_U-1g0f_q";
+const SB_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxoY2JidXBxaHBsamh0Y2RybG95Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEwMTM4MDksImV4cCI6MjA5NjU4OTgwOX0.V5SuBRkV0lTjTtC2sZ5siCXOT8Zpapv2YGKbFAgTSLs";
 const RID="11111111-1111-1111-1111-111111111111";
 const sb=window.supabase.createClient(SB_URL,SB_KEY);
 
-function fmtTimer(c){const m=Math.floor((Date.now()-new Date(c))/60000);return m<=0?"baru":m+" menit lalu";}
+let allOrders=[];
+let currentTab="active";
+let checkedItems={};
+let lastActiveIds=new Set();
+let brandNewIds=new Set();
+let ringingInterval=null;
 
-async function load(){
-  const{data}=await sb.from("orders").select("*,tables(table_number),order_items(*,menu_items(name),order_item_modifiers(*,modifiers(name)))").eq("restaurant_id",RID).in("status",["KITCHEN","PAID"]).order("created_at",{ascending:true});
-  const grid=document.getElementById("grid");
-  if(!data||!data.length){grid.innerHTML='<div class="empty">Tidak ada pesanan aktif. Menunggu...</div>';return;}
-  grid.innerHTML=data.map(o=>{
-    const items=(o.order_items||[]).map(i=>({name:i.menu_items?.name,qty:i.quantity,notes:i.notes,mods:(i.order_item_modifiers||[]).map(m=>m.modifiers?.name).filter(Boolean).join(", ")}));
-    return`<div class="ticket"><div class="ticket-head"><div><div class="queue">${o.queue_number||"—"}</div><div class="table-no">Meja ${o.tables?.table_number||"?"} · ${o.customer_name}</div></div><div class="timer">${fmtTimer(o.created_at)}</div></div><div class="ticket-body">${items.map(i=>`<div class="line"><div class="line-name"><span class="line-qty">${i.qty}×</span>${i.name||"Item"}</div>${i.mods?`<div class="mods">${i.mods}</div>`:""}${i.notes?`<div class="note">📝 ${i.notes}</div>`:""}</div>`).join("")}</div><button class="done-btn" onclick="done('${o.id}')">✓ Selesai</button></div>`;
-  }).join("");
+// SETTINGS (saved to localStorage)
+const settings={
+  soundEnabled:localStorage.getItem("kds_sound")!=="0",
+  persistRing:localStorage.getItem("kds_persist")==="1",
+  flashNew:localStorage.getItem("kds_flash")!=="0",
+  volume:parseInt(localStorage.getItem("kds_volume")||"80"),
+  tone:localStorage.getItem("kds_tone")||"bell"
+};
+
+// TONE LIST (icon-id, bukan emoji)
+const TONES=[
+  {id:"bell",name:"Bell Kring",icon:"i-tone-bell",desc:"Klasik kring-kring"},
+  {id:"chime",name:"Soft Chime",icon:"i-tone-chime",desc:"Lembut & elegan"},
+  {id:"doorbell",name:"Doorbell",icon:"i-tone-door",desc:"Ding-dong pintu"},
+  {id:"alert",name:"Quick Alert",icon:"i-tone-alert",desc:"Cepat & jelas"},
+  {id:"melodic",name:"Melodic",icon:"i-tone-melody",desc:"Nada musikal"},
+  {id:"classic",name:"Beep Klasik",icon:"i-tone-beep",desc:"Bip sederhana"},
+];
+
+// ============================================================
+// TOAST (pengganti alert)
+// ============================================================
+function toast(msg,type){
+  type=type||"info";
+  const host=document.getElementById("toast-host");
+  const el=document.createElement("div");
+  el.className="toast "+(type==="error"?"error":type==="success"?"success":"");
+  const icon=type==="error"?"i-alert":type==="success"?"i-check":"i-bell";
+  el.innerHTML=`<div class="toast-ic"><svg width="14" height="14"><use href="#${icon}"/></svg></div><div>${msg}</div>`;
+  host.appendChild(el);
+  setTimeout(()=>{el.style.opacity="0";el.style.transform="translateY(-12px)";el.style.transition=".25s";setTimeout(()=>el.remove(),250)},3200);
 }
 
-async function done(id){await sb.from("orders").update({status:"DONE"}).eq("id",id);load();}
+// ============================================================
+// CONFIRM DIALOG (pengganti window.confirm)
+// ============================================================
+let _confirmResolve=null;
+function showConfirm({title,msg,yesText,yesType,iconType,iconId}){
+  return new Promise(res=>{
+    _confirmResolve=res;
+    document.getElementById("confirm-title").textContent=title||"Konfirmasi";
+    document.getElementById("confirm-msg").textContent=msg||"";
+    const yesBtn=document.getElementById("confirm-yes");
+    yesBtn.textContent=yesText||"Lanjut";
+    yesBtn.className="btn-yes"+(yesType==="danger"?" danger":"");
+    const ic=document.getElementById("confirm-icon");
+    ic.className="confirm-icon "+(iconType||"info");
+    ic.innerHTML=`<svg width="26" height="26"><use href="#${iconId||"i-check-circle"}"/></svg>`;
+    document.getElementById("confirm-modal").classList.add("show");
+  });
+}
+function confirmAccept(){document.getElementById("confirm-modal").classList.remove("show");if(_confirmResolve){_confirmResolve(true);_confirmResolve=null}}
+function confirmCancel(){document.getElementById("confirm-modal").classList.remove("show");if(_confirmResolve){_confirmResolve(false);_confirmResolve=null}}
 
+// ============================================================
+// LOGOUT
+// ============================================================
+async function logout(){
+  const ok=await showConfirm({title:"Keluar dari Dapur?",msg:"Sesi staff dapur akan diakhiri.",yesText:"Ya, Keluar",yesType:"danger",iconType:"danger",iconId:"i-logout"});
+  if(!ok)return;
+  sessionStorage.removeItem("mie99_user");
+  window.location.href="/login.html";
+}
+
+// ============================================================
+// SOUNDS (Web Audio API - identik dengan versi lama)
+// ============================================================
+let audioCtx=null;
+function getAudio(){
+  if(!audioCtx)audioCtx=new(window.AudioContext||window.webkitAudioContext)();
+  if(audioCtx.state==="suspended")audioCtx.resume();
+  return audioCtx;
+}
+function playTone(freq,duration,wave,startTime,vol){
+  const ctx=getAudio();
+  const osc=ctx.createOscillator();
+  const gain=ctx.createGain();
+  osc.connect(gain);gain.connect(ctx.destination);
+  osc.frequency.value=freq;osc.type=wave||"sine";
+  const t=startTime||ctx.currentTime;
+  const v=(vol||1)*(settings.volume/100)*0.4;
+  gain.gain.setValueAtTime(0,t);
+  gain.gain.linearRampToValueAtTime(v,t+.01);
+  gain.gain.exponentialRampToValueAtTime(.001,t+duration);
+  osc.start(t);osc.stop(t+duration);
+}
+function playSound(toneId){
+  if(!settings.soundEnabled&&toneId!=="__test")return;
+  const id=toneId==="__test"?settings.tone:(toneId||settings.tone);
+  try{
+    const ctx=getAudio();const t=ctx.currentTime;
+    if(id==="bell"){
+      playTone(880,.6,"sine",t,1);playTone(880*2,.6,"sine",t,.3);playTone(880*3,.4,"sine",t,.1);
+      playTone(880,.6,"sine",t+.35,1);playTone(880*2,.6,"sine",t+.35,.3);
+    }else if(id==="chime"){
+      playTone(523.25,1.2,"sine",t,1);playTone(659.25,1.2,"sine",t,.5);playTone(783.99,1.2,"sine",t,.3);
+    }else if(id==="doorbell"){
+      playTone(659.25,.7,"sine",t,1);playTone(659.25*2,.7,"sine",t,.2);
+      playTone(523.25,.9,"sine",t+.5,1);playTone(523.25*2,.9,"sine",t+.5,.2);
+    }else if(id==="alert"){
+      playTone(1000,.12,"square",t,.6);playTone(1000,.12,"square",t+.18,.6);playTone(1000,.12,"square",t+.36,.6);
+    }else if(id==="melodic"){
+      playTone(523.25,.25,"triangle",t,.8);playTone(659.25,.25,"triangle",t+.15,.8);
+      playTone(783.99,.25,"triangle",t+.30,.8);playTone(1046.5,.5,"triangle",t+.45,1);
+    }else{playTone(800,.3,"sine",t,1)}
+  }catch(e){console.warn("Sound error:",e)}
+}
+function testSound(){playSound("__test")}
+
+// ============================================================
+// PERSISTENT RINGING
+// ============================================================
+function startRinging(orderCount){
+  if(!settings.soundEnabled)return;
+  document.getElementById("ring-sub").textContent=orderCount+" pesanan menunggu";
+  document.getElementById("ring-alert").classList.add("show");
+  document.getElementById("sound-btn").classList.add("urgent");
+  playSound();
+  if(settings.persistRing){
+    if(ringingInterval)clearInterval(ringingInterval);
+    ringingInterval=setInterval(()=>playSound(),3000);
+  }
+}
+function stopRinging(){
+  document.getElementById("ring-alert").classList.remove("show");
+  document.getElementById("sound-btn").classList.remove("urgent");
+  if(ringingInterval){clearInterval(ringingInterval);ringingInterval=null}
+}
+
+// ============================================================
+// CLOCK & USER
+// ============================================================
+setInterval(()=>render(),60000);
+if(window.currentUser)document.getElementById("user-name").textContent=window.currentUser.fullName||window.currentUser.username||"Staff Dapur";
+
+// ============================================================
+// SETTINGS UI
+// ============================================================
+function openSettings(){
+  document.getElementById("settings-modal").classList.add("show");
+  renderSoundOptions();
+  document.getElementById("volume-slider").value=settings.volume;
+  document.getElementById("volume-val").textContent=settings.volume+"%";
+  document.getElementById("t-sound").classList.toggle("on",settings.soundEnabled);
+  document.getElementById("t-persist").classList.toggle("on",settings.persistRing);
+  document.getElementById("t-flash").classList.toggle("on",settings.flashNew);
+}
+function closeSettings(){document.getElementById("settings-modal").classList.remove("show")}
+function renderSoundOptions(){
+  document.getElementById("sound-options").innerHTML=TONES.map(t=>
+    `<button class="sound-opt ${settings.tone===t.id?"selected":""}" onclick="selectTone('${t.id}')">
+      <div class="sound-icon"><svg width="16" height="16"><use href="#${t.icon}"/></svg></div>
+      <div class="sound-name">${t.name}</div>
+      <div class="sound-desc">${t.desc}</div>
+    </button>`
+  ).join("");
+}
+function selectTone(id){
+  settings.tone=id;localStorage.setItem("kds_tone",id);
+  renderSoundOptions();playSound(id);
+}
+function setVolume(v){
+  settings.volume=parseInt(v);localStorage.setItem("kds_volume",v);
+  document.getElementById("volume-val").textContent=v+"%";
+}
+function toggleSound(){
+  settings.soundEnabled=!settings.soundEnabled;
+  localStorage.setItem("kds_sound",settings.soundEnabled?"1":"0");
+  document.getElementById("t-sound").classList.toggle("on",settings.soundEnabled);
+  document.getElementById("sound-btn").classList.toggle("active",settings.soundEnabled);
+  if(!settings.soundEnabled)stopRinging();
+}
+function togglePersist(){
+  settings.persistRing=!settings.persistRing;
+  localStorage.setItem("kds_persist",settings.persistRing?"1":"0");
+  document.getElementById("t-persist").classList.toggle("on",settings.persistRing);
+}
+function toggleFlash(){
+  settings.flashNew=!settings.flashNew;
+  localStorage.setItem("kds_flash",settings.flashNew?"1":"0");
+  document.getElementById("t-flash").classList.toggle("on",settings.flashNew);
+}
+document.getElementById("sound-btn").classList.toggle("active",settings.soundEnabled);
+
+// ============================================================
+// FULLSCREEN
+// ============================================================
+function toggleFullscreen(){
+  if(!document.fullscreenElement){
+    document.documentElement.requestFullscreen().catch(()=>{});
+    document.getElementById("fs-btn").classList.add("active");
+  }else{
+    document.exitFullscreen();
+    document.getElementById("fs-btn").classList.remove("active");
+  }
+}
+document.addEventListener("fullscreenchange",()=>{
+  document.getElementById("fs-btn").classList.toggle("active",!!document.fullscreenElement);
+});
+
+// ============================================================
+// LOAD & RENDER
+// ============================================================
+function switchTab(tab,el){
+  currentTab=tab;
+  document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
+  el.classList.add("active");
+  render();
+}
+
+async function load(){
+  const today=new Date();today.setHours(0,0,0,0);
+  const{data}=await sb.from("orders")
+    .select("*,tables(table_number),order_items(*,menu_items(name),order_item_modifiers(*,modifiers(name)))")
+    .eq("restaurant_id",RID)
+    .in("status",["KITCHEN","PAID","DONE"])
+    .gte("created_at",today.toISOString())
+    .order("created_at",{ascending:true});
+  allOrders=data||[];
+
+  const active=allOrders.filter(o=>o.status==="KITCHEN"||o.status==="PAID");
+  const done=allOrders.filter(o=>o.status==="DONE");
+
+  const activeIds=new Set(active.map(o=>o.id));
+  const newOrders=[...activeIds].filter(id=>!lastActiveIds.has(id));
+  if(lastActiveIds.size>0&&newOrders.length>0){
+    if(settings.flashNew)newOrders.forEach(id=>brandNewIds.add(id));
+    startRinging(newOrders.length);
+    setTimeout(()=>{newOrders.forEach(id=>brandNewIds.delete(id));render()},4000);
+  }
+  lastActiveIds=activeIds;
+
+  const urgent=active.filter(o=>{
+    const mins=Math.floor((Date.now()-new Date(o.paid_at||o.created_at))/60000);
+    return mins>=15;
+  }).length;
+
+  document.getElementById("h-queue").textContent=active.length;
+  document.getElementById("h-done").textContent=done.length;
+  document.getElementById("h-urgent").textContent=urgent;
+  document.getElementById("c-active").textContent=active.length;
+  document.getElementById("c-done").textContent=done.length;
+
+  if(done.length){
+    const totalMins=done.reduce((s,o)=>{
+      const start=new Date(o.paid_at||o.created_at);
+      const end=new Date(o.updated_at);
+      return s+Math.max(0,(end-start)/60000);
+    },0);
+    document.getElementById("h-avg").textContent=Math.round(totalMins/done.length)+" mnt";
+  }else document.getElementById("h-avg").textContent="—";
+
+  render();
+}
+
+function render(){
+  const grid=document.getElementById("grid");
+  let list=currentTab==="active"
+    ? allOrders.filter(o=>o.status==="KITCHEN"||o.status==="PAID")
+    : allOrders.filter(o=>o.status==="DONE");
+
+  const q=(document.getElementById("search-input")?.value||"").trim().toLowerCase();
+  if(q){
+    list=list.filter(o=>{
+      const table=String(o.tables?.table_number||"").toLowerCase();
+      const cust=(o.customer_name||"").toLowerCase();
+      const items=(o.order_items||[]).map(i=>i.menu_items?.name||"").join(" ").toLowerCase();
+      return table.includes(q)||cust.includes(q)||items.includes(q);
+    });
+  }
+
+  const sort=document.getElementById("sort-select")?.value||"oldest";
+  if(sort==="newest")list.sort((a,b)=>new Date(b.created_at)-new Date(a.created_at));
+  else if(sort==="urgent"){
+    list.sort((a,b)=>{
+      const am=Math.floor((Date.now()-new Date(a.paid_at||a.created_at))/60000);
+      const bm=Math.floor((Date.now()-new Date(b.paid_at||b.created_at))/60000);
+      return bm-am;
+    });
+  }else if(sort==="table"){
+    list.sort((a,b)=>(a.tables?.table_number||999)-(b.tables?.table_number||999));
+  }
+
+  if(!list.length){
+    grid.innerHTML=currentTab==="active"
+      ? `<div class="empty">
+          <div class="empty-icon"><svg width="28" height="28"><use href="#i-empty-plate"/></svg></div>
+          <div class="empty-title">${q?"Tidak ada hasil pencarian":"Tidak ada pesanan aktif"}</div>
+          <div class="empty-sub">${q?"Coba kata kunci lain":"Pesanan baru akan muncul otomatis<br>disertai notifikasi suara"}</div>
+          ${q?"":`<div class="empty-live"><span class="live-dot"></span>Pantau real-time aktif</div>`}
+        </div>`
+      : `<div class="empty">
+          <div class="empty-icon"><svg width="28" height="28"><use href="#i-list-check"/></svg></div>
+          <div class="empty-title">${q?"Tidak ada hasil pencarian":"Belum ada pesanan selesai"}</div>
+          <div class="empty-sub">${q?"Coba kata kunci lain":"Pesanan yang sudah Anda selesaikan<br>akan tercatat di sini"}</div>
+        </div>`;
+    return;
+  }
+
+  grid.innerHTML=list.map(o=>renderTicket(o)).join("");
+}
+
+function renderTicket(o){
+  const items=(o.order_items||[]).map(i=>({
+    id:i.id,
+    name:i.menu_items?.name||"Item",
+    qty:i.quantity,
+    notes:i.notes,
+    mods:(i.order_item_modifiers||[]).map(m=>m.modifiers?.name).filter(Boolean).join(", ")
+  }));
+  const totalQty=items.reduce((s,i)=>s+(i.qty||0),0);
+
+  const start=new Date(o.paid_at||o.created_at);
+  const mins=Math.floor((Date.now()-start)/60000);
+  const minsDisplay=mins<=0?"0":mins;
+
+  let cls="";let timerCls="";
+  if(o.status!=="DONE"){
+    if(mins>=15){cls="urgent";timerCls="danger"}
+    else if(mins>=10){timerCls="warn"}
+    else if(mins<=2){cls="priority"}
+  }
+  if(o.status==="DONE")cls="done";
+  if(brandNewIds.has(o.id))cls="brand-new";
+
+  const checked=checkedItems[o.id]||new Set();
+  const doneCount=items.filter(i=>checked.has(i.id)).length;
+  const progress=items.length?Math.round(doneCount/items.length*100):0;
+  const isNew=brandNewIds.has(o.id);
+
+  return`<div class="ticket ${cls}">
+    ${isNew?'<div class="new-badge"><svg width="10" height="10"><use href="#i-zap"/></svg>BARU</div>':""}
+    <div class="ticket-head">
+      <div>
+        <div class="queue">${o.queue_number||"—"}</div>
+        <div class="queue-meta">
+          <span class="table-badge"><svg width="11" height="11"><use href="#i-table"/></svg>Meja ${o.tables?.table_number||"?"}</span>
+          <span class="cust">${o.customer_name||""}</span>
+        </div>
+      </div>
+      <div class="timer-box">
+        <div class="timer-val ${timerCls}">${minsDisplay}'</div>
+        <div class="timer-label">${o.status==="DONE"?"Selesai":"Sejak masuk"}</div>
+        <div class="items-count">${totalQty} item · ${items.length} menu</div>
+      </div>
+    </div>
+
+    ${o.status!=="DONE"?`<div class="progress"><div class="progress-bar" style="width:${progress}%"></div></div><div class="progress-text">${doneCount}/${items.length} selesai · ${progress}%</div>`:""}
+
+    <div class="ticket-body">
+      ${items.map(i=>`
+        <div class="item-line">
+          <div class="item-row">
+            ${o.status!=="DONE"?
+              `<button class="item-checkbox ${checked.has(i.id)?"checked":""}" onclick="toggleItem('${o.id}','${i.id}')">${checked.has(i.id)?`<svg width="16" height="16"><use href="#i-check"/></svg>`:""}</button>`
+              :`<div class="item-checkbox checked"><svg width="16" height="16"><use href="#i-check"/></svg></div>`}
+            <div class="item-info">
+              <div class="item-name ${checked.has(i.id)?"checked":""}"><span class="qty-badge">${i.qty}×</span><span>${i.name}</span></div>
+              ${i.mods?`<div class="item-mods">+ ${i.mods}</div>`:""}
+              ${i.notes?`<div class="item-notes"><svg width="13" height="13"><use href="#i-note"/></svg><span>${i.notes}</span></div>`:""}
+            </div>
+          </div>
+        </div>
+      `).join("")}
+    </div>
+
+    <div class="ticket-foot">
+      ${o.status==="DONE"
+        ? `<button class="btn btn-back" onclick="reopenOrder('${o.id}')"><svg width="16" height="16"><use href="#i-undo"/></svg>Kembalikan ke Aktif</button>`
+        : `<button class="btn btn-done" onclick="markDone('${o.id}')"><svg width="16" height="16"><use href="#i-check"/></svg>Pesanan Siap Antar</button>`
+      }
+    </div>
+  </div>`;
+}
+
+function toggleItem(orderId,itemId){
+  if(!checkedItems[orderId])checkedItems[orderId]=new Set();
+  if(checkedItems[orderId].has(itemId))checkedItems[orderId].delete(itemId);
+  else checkedItems[orderId].add(itemId);
+  render();
+}
+
+async function markDone(id){
+  const ok=await showConfirm({title:"Tandai Siap Antar?",msg:"Pesanan akan dipindah ke daftar selesai dan dikirim ke kasir.",yesText:"Ya, Siap Antar",iconType:"info",iconId:"i-check-circle"});
+  if(!ok)return;
+  const{error}=await sb.from("orders").update({status:"DONE",updated_at:new Date().toISOString()}).eq("id",id);
+  if(error){toast("Gagal: "+error.message,"error");return}
+  delete checkedItems[id];
+  toast("Pesanan ditandai siap antar.","success");
+  load();
+}
+
+async function reopenOrder(id){
+  const ok=await showConfirm({title:"Kembalikan ke Aktif?",msg:"Pesanan akan masuk lagi ke daftar antrean dapur.",yesText:"Ya, Kembalikan",iconType:"warn",iconId:"i-undo"});
+  if(!ok)return;
+  const{error}=await sb.from("orders").update({status:"KITCHEN",updated_at:new Date().toISOString()}).eq("id",id);
+  if(error){toast("Gagal: "+error.message,"error");return}
+  toast("Pesanan dikembalikan ke antrean.","success");
+  load();
+}
+
+// ============================================================
+// REALTIME & INIT
+// ============================================================
 sb.channel("kitchen-rt").on("postgres_changes",{event:"*",schema:"public",table:"orders"},()=>load()).subscribe();
-
-load();setInterval(load,15000);
+load();
+setInterval(load,12000);
+document.addEventListener("click",()=>{if(audioCtx&&audioCtx.state==="suspended")audioCtx.resume()},{once:true});
 </script>
 </body>
 </html>
