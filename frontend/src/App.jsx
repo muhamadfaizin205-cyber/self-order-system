@@ -860,7 +860,7 @@ export default function App() {
               ))}
             </div>
           ))}
-          <div style={{ height: 130 }} />
+          <div style={{ height: cartCount > 0 ? 100 : 24 }} />
         </div>
 
         {cartCount > 0 && <div style={{
