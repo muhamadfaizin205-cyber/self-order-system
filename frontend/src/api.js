@@ -160,6 +160,15 @@ export const api = {
         tableId = data?.id;
       }
 
+      // Validasi: order WAJIB punya meja. Tanpa ini, database menolak (table_id not-null).
+      if (!tableId) {
+        throw new Error(
+          tableNumber
+            ? `Meja ${tableNumber} tidak ditemukan. Silakan scan ulang QR di meja Anda.`
+            : "Nomor meja tidak terdeteksi. Silakan scan ulang QR yang ada di meja Anda untuk memesan."
+        );
+      }
+
       const subtotal = items.reduce((s, it) => s + (it.unitPrice || 0) * (it.quantity || it.qty || 1), 0);
       const tax = Math.round(subtotal * 0.1);
       const rounding = subtotal > 0 ? -(((subtotal + tax) % 100) || 0) : 0;
