@@ -255,7 +255,7 @@ function RecoScroll({ items, onAdd }) {
 // ============================================================
 // SIDE DRAWER (Hamburger Menu) — Fungsional penuh
 // ============================================================
-function SideDrawer({ open, onClose, settings }) {
+function SideDrawer({ open, onClose, settings, tableNumber, cartCount, subtotal }) {
   const [subView, setSubView] = useState(null); // null | "history" | "language" | "help" | "privacy"
   const [lang, setLang] = useState("id");
   const [faqOpen, setFaqOpen] = useState(null);
@@ -495,7 +495,7 @@ function SideDrawer({ open, onClose, settings }) {
               fontSize: 11.5, fontWeight: 700,
               border: "1px solid rgba(255,255,255,.25)",
             }}>
-              📍 Meja {outlet.table || "—"}
+              📍 Meja {tableNumber || "—"}
             </div>
 
             {/* Cart status chip — only if ada item */}
@@ -1170,7 +1170,7 @@ export default function App() {
 
       {/* ===== MODAL & DRAWER ===== */}
       {modalItem && <ProductModal item={modalItem} onClose={() => setModalItem(null)} onAdd={addToCart} />}
-      <SideDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} settings={settings} />
+      <SideDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} settings={settings} tableNumber={outlet.table} cartCount={cartCount} subtotal={subtotal} />
       {processing && <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,.6)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", zIndex: 100 }}>
         <div style={{ width: 40, height: 40, border: "4px solid rgba(255,255,255,.3)", borderTopColor: "#fff", borderRadius: "50%", animation: "spin .8s linear infinite" }} />
         <div style={{ color: "#fff", marginTop: 14, fontFamily: "'Poppins',sans-serif" }}>Sedang diproses...</div>
