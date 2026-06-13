@@ -21,9 +21,38 @@ function getTableNumber() {
 
 const tableNumber = getTableNumber();
 
+// ============================================================
+// DEVICE ID — penanda unik HP pelanggan (untuk riwayat tanpa login)
+// ID acak permanen disimpan di localStorage. Selama pelanggan pakai
+// HP & browser yang sama, riwayat selalu kebaca otomatis.
+// ============================================================
+function getOrCreateDeviceId() {
+  try {
+    const KEY = "mie99_device_id";
+    let id = localStorage.getItem(KEY);
+    if (!id) {
+      // Buat ID unik: timestamp + random, sangat kecil kemungkinan tabrakan
+      id = "dev_" +
+        Date.now().toString(36) +
+        Math.random().toString(36).slice(2, 12) +
+        Math.random().toString(36).slice(2, 8);
+      localStorage.setItem(KEY, id);
+    }
+    return id;
+  } catch (e) {
+    // Kalau localStorage diblokir (private mode dll), pakai session sementara
+    if (!window.__mie99_tmp_device)
+      window.__mie99_tmp_device = "tmp_" + Math.random().toString(36).slice(2, 14);
+    return window.__mie99_tmp_device;
+  }
+}
+
+const deviceId = getOrCreateDeviceId();
+
 export const api = {
   hasSession: Boolean(tableNumber),
   tableNumber,
+  deviceId,
   restaurantId: RESTAURANT_ID,
 
   async validateTable() {
@@ -148,6 +177,7 @@ export const api = {
         tax,
         rounding,
         total_amount: totalAmount,
+        customer_device: deviceId,
       }).select().single();
 
       if (error) throw new Error(error.message);
@@ -188,6 +218,58 @@ export const api = {
   async getOrderStatus(orderId) {
     const { data } = await supabase.from("orders").select("status, queue_number").eq("id", orderId).single();
     return { status: data?.status, queueNumber: data?.queue_number };
+  },
+
+  // ============================================================
+  // RIWAYAT PESANAN — query semua order milik device ini
+  // ============================================================
+  async getOrderHistory() {
+    try {
+      const { data, error } = await supabase
+        .from("orders")
+        .select(`
+          id, status, queue_number, customer_name,
+          subtotal, tax, total_amount, payment_method,
+          created_at, paid_at,
+          tables ( table_number ),
+          order_items (
+            quantity, unit_price, notes,
+            menu_items ( name ),
+            order_item_modifiers ( modifiers ( name ) )
+          )
+        `)
+        .eq("restaurant_id", RESTAURANT_ID)
+        .eq("customer_device", deviceId)
+        .order("created_at", { ascending: false })
+        .limit(50);
+
+      if (error) { console.error("getOrderHistory error:", error); return []; }
+
+      return (data || []).map(o => ({
+        id: o.id,
+        status: o.status,
+        queueNumber: o.queue_number,
+        customerName: o.customer_name,
+        subtotal: o.subtotal,
+        tax: o.tax,
+        total: o.total_amount,
+        paymentMethod: o.payment_method,
+        createdAt: o.created_at,
+        paidAt: o.paid_at,
+        tableNumber: o.tables?.table_number || null,
+        items: (o.order_items || []).map(it => ({
+          name: it.menu_items?.name || "Item",
+          qty: it.quantity,
+          unitPrice: it.unit_price,
+          notes: it.notes,
+          modifiers: (it.order_item_modifiers || [])
+            .map(m => m.modifiers?.name).filter(Boolean),
+        })),
+      }));
+    } catch (e) {
+      console.error("getOrderHistory exception:", e);
+      return [];
+    }
   },
 
   async simulatePaid(orderId) {
