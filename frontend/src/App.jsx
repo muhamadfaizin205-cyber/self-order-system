@@ -104,6 +104,115 @@ const G2 = "#25a550";
 const GL = "#e6f4ea";
 
 // ============================================================
+// SISTEM TOAST GLOBAL (notif modern, pengganti alert)
+// Dipanggil dari komponen mana pun via window event — aman, tanpa props.
+// ============================================================
+function showToast(message, type = "info", duration = 3200) {
+  try {
+    window.dispatchEvent(new CustomEvent("mie99-toast", { detail: { message, type, duration, id: Date.now() + Math.random() } }));
+  } catch (e) { /* no-op */ }
+}
+
+function ToastHost() {
+  const [toasts, setToasts] = useState([]);
+  useEffect(() => {
+    const onToast = (e) => {
+      const t = e.detail;
+      setToasts(prev => [...prev, t]);
+      setTimeout(() => {
+        setToasts(prev => prev.filter(x => x.id !== t.id));
+      }, t.duration || 3200);
+    };
+    window.addEventListener("mie99-toast", onToast);
+    return () => window.removeEventListener("mie99-toast", onToast);
+  }, []);
+
+  const STYLE = {
+    success: { bg: "linear-gradient(135deg,#1b7a3d,#25a550)", icon: "✓", ring: "rgba(37,165,80,.45)" },
+    error:   { bg: "linear-gradient(135deg,#c1121f,#e03131)", icon: "!", ring: "rgba(224,49,49,.45)" },
+    info:    { bg: "linear-gradient(135deg,#1b7a3d,#25a550)", icon: "i", ring: "rgba(37,165,80,.45)" },
+  };
+
+  return (
+    <div style={{
+      position: "absolute", top: 0, left: 0, right: 0, zIndex: 9999,
+      display: "flex", flexDirection: "column", alignItems: "center",
+      gap: 10, padding: "14px 14px 0", pointerEvents: "none",
+    }}>
+      {toasts.map(t => {
+        const s = STYLE[t.type] || STYLE.info;
+        return (
+          <div key={t.id} style={{
+            pointerEvents: "auto",
+            width: "100%", maxWidth: 400,
+            background: s.bg, color: "#fff",
+            borderRadius: 16, padding: "13px 15px",
+            display: "flex", alignItems: "center", gap: 12,
+            boxShadow: `0 10px 30px ${s.ring}, 0 2px 8px rgba(0,0,0,.15)`,
+            fontFamily: "'Poppins',sans-serif",
+            animation: "toastIn .35s cubic-bezier(.2,.9,.3,1.3)",
+          }}>
+            <div style={{
+              flexShrink: 0, width: 30, height: 30, borderRadius: "50%",
+              background: "rgba(255,255,255,.22)", display: "flex",
+              alignItems: "center", justifyContent: "center",
+              fontWeight: 800, fontSize: 16,
+            }}>{s.icon}</div>
+            <div style={{ fontSize: 13.5, fontWeight: 600, lineHeight: 1.35, flex: 1 }}>{t.message}</div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+// ============================================================
+// CONFIRM DIALOG MODERN (pengganti window.confirm)
+// ============================================================
+function ConfirmDialog({ open, title, message, confirmText = "Ya, Hapus", cancelText = "Batal", danger = true, onConfirm, onCancel }) {
+  if (!open) return null;
+  return (
+    <div onClick={onCancel} style={{
+      position: "absolute", inset: 0, zIndex: 9998,
+      background: "rgba(0,0,0,.55)", backdropFilter: "blur(3px)",
+      display: "flex", alignItems: "center", justifyContent: "center", padding: 22,
+      animation: "fadeIn .2s ease",
+    }}>
+      <div onClick={e => e.stopPropagation()} style={{
+        width: "100%", maxWidth: 320, background: "#fff", borderRadius: 22,
+        padding: "26px 22px 20px", textAlign: "center",
+        fontFamily: "'Poppins',sans-serif",
+        boxShadow: "0 20px 60px rgba(0,0,0,.3)",
+        animation: "popIn .3s cubic-bezier(.2,.9,.3,1.3)",
+      }}>
+        <div style={{
+          width: 58, height: 58, borderRadius: "50%", margin: "0 auto 16px",
+          background: danger ? "#fdeaea" : GL,
+          display: "flex", alignItems: "center", justifyContent: "center",
+        }}>
+          <Trash2 size={26} color={danger ? "#e03131" : G} />
+        </div>
+        <div style={{ fontSize: 17, fontWeight: 800, color: "#222" }}>{title}</div>
+        <div style={{ fontSize: 13.5, color: "#777", marginTop: 8, lineHeight: 1.5 }}>{message}</div>
+        <div style={{ display: "flex", gap: 10, marginTop: 22 }}>
+          <button className="tap" onClick={onCancel} style={{
+            flex: 1, background: "#f1f2f4", color: "#555", border: "none",
+            borderRadius: 13, padding: 13, fontWeight: 700, fontSize: 14,
+            cursor: "pointer", fontFamily: "inherit",
+          }}>{cancelText}</button>
+          <button className="tap" onClick={onConfirm} style={{
+            flex: 1, background: danger ? "#e03131" : G, color: "#fff", border: "none",
+            borderRadius: 13, padding: 13, fontWeight: 700, fontSize: 14,
+            cursor: "pointer", fontFamily: "inherit",
+            boxShadow: danger ? "0 6px 18px rgba(224,49,49,.4)" : `0 6px 18px rgba(27,122,61,.4)`,
+          }}>{confirmText}</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ============================================================
 // GLOBAL CSS
 // ============================================================
 const CSS = `
@@ -112,6 +221,8 @@ const CSS = `
 body{background:#1a1a1a;font-family:'Poppins',sans-serif}
 ::-webkit-scrollbar{display:none}
 @keyframes spin{to{transform:rotate(360deg)}}
+@keyframes toastIn{from{opacity:0;transform:translateY(-18px) scale(.96)}to{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes popIn{from{opacity:0;transform:scale(.85)}to{opacity:1;transform:scale(1)}}
 @keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
 @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 @keyframes scaleIn{from{transform:scale(.95);opacity:0}to{transform:scale(1);opacity:1}}
@@ -285,8 +396,8 @@ function SideDrawer({ open, onClose, settings, tableNumber, cartCount, subtotal 
   }, [subView]);
 
   const submitFeedback = async () => {
-    if (!fbMessage.trim()) { alert("Mohon tulis pesan Anda."); return; }
-    if (!fbRating) { alert("Mohon beri rating bintang."); return; }
+    if (!fbMessage.trim()) { showToast("Mohon tulis pesan Anda.", "error"); return; }
+    if (!fbRating) { showToast("Mohon beri rating bintang.", "error"); return; }
     setFbSending(true);
     try {
       const { supabase: sb } = await import("./supabase");
@@ -302,7 +413,7 @@ function SideDrawer({ open, onClose, settings, tableNumber, cartCount, subtotal 
       setFbRating(0); setFbMessage(""); setFbCategory("Pelayanan");
       setTimeout(() => setFbSent(false), 4000);
     } catch (e) {
-      alert("Gagal kirim. Coba lagi.");
+      showToast("Gagal kirim. Coba lagi.", "error");
     }
     setFbSending(false);
   };
@@ -810,6 +921,7 @@ function ProductModal({ item, onClose, onAdd }) {
 export default function App() {
   const [screen, setScreen] = useState("menu");
   const [cart, setCart] = useState([]);
+  const [confirmClear, setConfirmClear] = useState(false);
   const [modalItem, setModalItem] = useState(null);
   const [search, setSearch] = useState("");
   const [showSearch, setShowSearch] = useState(false);
@@ -913,13 +1025,13 @@ export default function App() {
       const res = await api.createOrder({ customerName: form.name, phone: form.phone, email: form.email, paymentMethod: payMethod === "online" ? "QRIS" : "CASHIER", items: buildApiItems() });
       setOrderId(res.orderId); setProcessing(false);
       if (payMethod === "online") { setQrisPayload(res.qris?.payload || null); setScreen("qris"); } else setScreen("success");
-    } catch (e) { setProcessing(false); alert("Gagal: " + e.message); }
+    } catch (e) { setProcessing(false); showToast(e.message, "error", 4200); }
   };
 
   const simulatePaid = async () => {
     setProcessing(true);
     if (!isLive) { setTimeout(() => { setProcessing(false); setScreen("success"); }, 1000); return; }
-    try { const { queueNumber: q } = await api.simulatePaid(orderId); setQueueNumber(q); setProcessing(false); setScreen("success"); } catch (e) { setProcessing(false); alert("Gagal: " + e.message); }
+    try { const { queueNumber: q } = await api.simulatePaid(orderId); setQueueNumber(q); setProcessing(false); setScreen("success"); } catch (e) { setProcessing(false); showToast(e.message, "error", 4200); }
   };
 
   const resetAll = () => { setCart([]); setForm({ name: "", phone: "", email: "", agree: false }); setOrderId(null); setQrisPayload(null); setQueueNumber(null); setScreen("menu"); };
@@ -1042,9 +1154,7 @@ export default function App() {
             className="tap"
             onClick={(e) => {
               e.stopPropagation();
-              if (window.confirm(`Hapus semua ${cartCount} item dari keranjang?`)) {
-                setCart([]);
-              }
+              setConfirmClear(true);
             }}
             style={{
               width: 52, height: 52, borderRadius: "50%",
@@ -1293,6 +1403,19 @@ export default function App() {
       {/* ===== MODAL & DRAWER ===== */}
       {modalItem && <ProductModal item={modalItem} onClose={() => setModalItem(null)} onAdd={addToCart} />}
       <SideDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} settings={settings} tableNumber={outlet.table} cartCount={cartCount} subtotal={subtotal} />
+
+      {/* ===== NOTIF MODERN & CONFIRM ===== */}
+      <ToastHost />
+      <ConfirmDialog
+        open={confirmClear}
+        title="Hapus Keranjang?"
+        message={`Semua ${cartCount} item akan dihapus dari keranjang. Tindakan ini tidak bisa dibatalkan.`}
+        confirmText="Ya, Hapus"
+        cancelText="Batal"
+        danger
+        onCancel={() => setConfirmClear(false)}
+        onConfirm={() => { setCart([]); setConfirmClear(false); showToast("Keranjang dikosongkan.", "success"); }}
+      />
       {processing && <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,.6)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", zIndex: 100 }}>
         <div style={{ width: 40, height: 40, border: "4px solid rgba(255,255,255,.3)", borderTopColor: "#fff", borderRadius: "50%", animation: "spin .8s linear infinite" }} />
         <div style={{ color: "#fff", marginTop: 14, fontFamily: "'Poppins',sans-serif" }}>Sedang diproses...</div>
