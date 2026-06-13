@@ -459,12 +459,59 @@ function SideDrawer({ open, onClose, settings }) {
     // Main menu
     return (
       <>
-        <div style={{ padding: "28px 20px 20px", background: `linear-gradient(135deg,${G},${G2})`, color: "#fff" }}>
-          <div style={{ fontSize: 20, fontWeight: 800 }}>Mie 99</div>
-          <div style={{ fontSize: 12, opacity: .8, marginTop: 4 }}>👋 Masuk sebagai tamu</div>
-          <button className="tap" style={{ marginTop: 12, padding: "8px 20px", borderRadius: 8, border: "1.5px solid rgba(255,255,255,.5)", background: "transparent", color: "#fff", fontWeight: 600, fontSize: 12, cursor: "pointer", transition: "background .2s" }}
-            onMouseOver={e => e.currentTarget.style.background = "rgba(255,255,255,.15)"}
-            onMouseOut={e => e.currentTarget.style.background = "transparent"}>Masuk / Daftar</button>
+        <div style={{ padding: "22px 20px 18px", background: `linear-gradient(145deg,${G} 0%,${G2} 100%)`, color: "#fff", position: "relative", overflow: "hidden" }}>
+          {/* Background decorative circles */}
+          <div style={{ position: "absolute", top: -24, right: -24, width: 90, height: 90, borderRadius: "50%", background: "rgba(255,255,255,.07)", pointerEvents: "none" }} />
+          <div style={{ position: "absolute", bottom: -16, right: 20, width: 60, height: 60, borderRadius: "50%", background: "rgba(255,255,255,.05)", pointerEvents: "none" }} />
+
+          {/* Brand */}
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
+            <div style={{ fontSize: 22 }}>🍜</div>
+            <div style={{ fontSize: 18, fontWeight: 900, letterSpacing: "-.3px" }}>Mie 99</div>
+          </div>
+
+          {/* Dynamic greeting */}
+          {(() => {
+            const h = new Date().getHours();
+            const [salam, emoji] =
+              h < 11 ? ["Selamat Pagi", "🌅"] :
+              h < 15 ? ["Selamat Siang", "☀️"] :
+              h < 18 ? ["Selamat Sore", "🌆"] :
+                       ["Selamat Malam", "🌙"];
+            return (
+              <div style={{ fontSize: 13, fontWeight: 600, opacity: .92, marginBottom: 14 }}>
+                {emoji} {salam}, selamat datang!
+              </div>
+            );
+          })()}
+
+          {/* Info chips row */}
+          <div style={{ display: "flex", gap: 7, flexWrap: "wrap" }}>
+            {/* Table chip */}
+            <div style={{
+              display: "flex", alignItems: "center", gap: 5,
+              background: "rgba(255,255,255,.18)", backdropFilter: "blur(4px)",
+              padding: "5px 11px", borderRadius: 20,
+              fontSize: 11.5, fontWeight: 700,
+              border: "1px solid rgba(255,255,255,.25)",
+            }}>
+              📍 Meja {outlet.table || "—"}
+            </div>
+
+            {/* Cart status chip — only if ada item */}
+            {cartCount > 0 && (
+              <div style={{
+                display: "flex", alignItems: "center", gap: 5,
+                background: "rgba(255,255,255,.22)", backdropFilter: "blur(4px)",
+                padding: "5px 11px", borderRadius: 20,
+                fontSize: 11.5, fontWeight: 700,
+                border: "1px solid rgba(255,255,255,.3)",
+                animation: "pulse .8s ease 2",
+              }}>
+                🛒 {cartCount} item · {rupiah(subtotal)}
+              </div>
+            )}
+          </div>
         </div>
         <div style={{ flex: 1, padding: "8px 0" }}>
           {menuItems.map((it, i) => (
