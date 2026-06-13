@@ -265,6 +265,25 @@ function SideDrawer({ open, onClose, settings, tableNumber, cartCount, subtotal 
   const [fbSending, setFbSending] = useState(false);
   const [fbSent, setFbSent] = useState(false);
 
+  // Riwayat pesanan (device-based, tanpa login)
+  const [history, setHistory] = useState(null); // null = belum load, [] = kosong
+  const [historyLoading, setHistoryLoading] = useState(false);
+
+  const loadHistory = async () => {
+    setHistoryLoading(true);
+    try {
+      const data = await api.getOrderHistory();
+      setHistory(data);
+    } catch (e) {
+      setHistory([]);
+    }
+    setHistoryLoading(false);
+  };
+
+  useEffect(() => {
+    if (subView === "history") loadHistory();
+  }, [subView]);
+
   const submitFeedback = async () => {
     if (!fbMessage.trim()) { alert("Mohon tulis pesan Anda."); return; }
     if (!fbRating) { alert("Mohon beri rating bintang."); return; }
@@ -360,19 +379,122 @@ function SideDrawer({ open, onClose, settings, tableNumber, cartCount, subtotal 
       </div>
     );
 
-    if (subView === "history") return (
-      <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "16px 20px", borderBottom: "1px solid #eee" }}>
-          <button className="tap" onClick={back} style={{ background: "none", border: "none", cursor: "pointer", display: "flex" }}><ChevronLeft size={20} /></button>
-          <span style={{ fontWeight: 700, fontSize: 15 }}>Riwayat Pesanan</span>
+    if (subView === "history") {
+      const STATUS_MAP = {
+        PENDING:   { label: "Menunggu Bayar", color: "#f59e0b", bg: "#fef3c7", icon: "⏳" },
+        KITCHEN:   { label: "Sedang Dimasak",  color: "#3b82f6", bg: "#dbeafe", icon: "🍳" },
+        PAID:      { label: "Sedang Dimasak",  color: "#3b82f6", bg: "#dbeafe", icon: "🍳" },
+        DONE:      { label: "Selesai",         color: "#16a34a", bg: "#dcfce7", icon: "✅" },
+        CANCELLED: { label: "Dibatalkan",      color: "#ef4444", bg: "#fee2e2", icon: "✖️" },
+      };
+      const fmtDate = (iso) => {
+        if (!iso) return "";
+        const d = new Date(iso);
+        const today = new Date(); today.setHours(0,0,0,0);
+        const yest = new Date(today); yest.setDate(yest.getDate() - 1);
+        const dDay = new Date(d); dDay.setHours(0,0,0,0);
+        const time = d.toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" });
+        if (dDay.getTime() === today.getTime()) return `Hari ini, ${time}`;
+        if (dDay.getTime() === yest.getTime()) return `Kemarin, ${time}`;
+        return d.toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" }) + `, ${time}`;
+      };
+
+      // Stats ringkas
+      const totalOrders = history?.length || 0;
+      const totalSpent = (history || []).reduce((s, o) => s + (o.total || 0), 0);
+
+      return (
+        <div style={{ flex: 1, display: "flex", flexDirection: "column", background: "#f7f7f8" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "16px 20px", borderBottom: "1px solid #eee", background: "#fff" }}>
+            <button className="tap" onClick={back} style={{ background: "none", border: "none", cursor: "pointer", display: "flex" }}><ChevronLeft size={20} /></button>
+            <span style={{ fontWeight: 700, fontSize: 15 }}>Riwayat Pesanan</span>
+            {!historyLoading && totalOrders > 0 &&
+              <button className="tap" onClick={loadHistory} style={{ marginLeft: "auto", background: "none", border: "none", cursor: "pointer", color: G, fontSize: 12, fontWeight: 600, fontFamily: "inherit" }}>↻ Segarkan</button>}
+          </div>
+
+          {/* Loading */}
+          {historyLoading && (
+            <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 30, color: "#aaa" }}>
+              <div style={{ width: 32, height: 32, border: "3px solid #e5e5e5", borderTopColor: G, borderRadius: "50%", animation: "spin .8s linear infinite" }} />
+              <div style={{ fontSize: 13, marginTop: 14, color: "#999" }}>Memuat riwayat...</div>
+            </div>
+          )}
+
+          {/* Empty */}
+          {!historyLoading && history && history.length === 0 && (
+            <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 30, color: "#aaa" }}>
+              <History size={48} color="#ddd" />
+              <div style={{ fontWeight: 600, fontSize: 15, marginTop: 14, color: "#999" }}>Belum ada pesanan</div>
+              <div style={{ fontSize: 12, marginTop: 4, textAlign: "center", lineHeight: 1.5, maxWidth: 240 }}>Pesanan Anda akan otomatis muncul di sini setelah memesan. Tidak perlu login!</div>
+            </div>
+          )}
+
+          {/* List */}
+          {!historyLoading && history && history.length > 0 && (
+            <div style={{ flex: 1, overflowY: "auto", padding: "14px 14px 24px" }}>
+              {/* Summary card */}
+              <div style={{ display: "flex", gap: 10, marginBottom: 14 }}>
+                <div style={{ flex: 1, background: `linear-gradient(135deg,${G},${G2})`, color: "#fff", borderRadius: 14, padding: "14px 16px" }}>
+                  <div style={{ fontSize: 11, opacity: .85, fontWeight: 600 }}>Total Pesanan</div>
+                  <div style={{ fontSize: 22, fontWeight: 900, marginTop: 2 }}>{totalOrders}</div>
+                </div>
+                <div style={{ flex: 1.4, background: "#fff", border: "1px solid #eee", borderRadius: 14, padding: "14px 16px" }}>
+                  <div style={{ fontSize: 11, color: "#999", fontWeight: 600 }}>Total Belanja</div>
+                  <div style={{ fontSize: 19, fontWeight: 900, marginTop: 2, color: G }}>{rupiah(totalSpent)}</div>
+                </div>
+              </div>
+
+              {history.map(o => {
+                const st = STATUS_MAP[o.status] || STATUS_MAP.PENDING;
+                const itemCount = o.items.reduce((s, i) => s + i.qty, 0);
+                return (
+                  <div key={o.id} style={{ background: "#fff", borderRadius: 14, border: "1px solid #eee", marginBottom: 12, overflow: "hidden", boxShadow: "0 1px 3px rgba(0,0,0,.04)" }}>
+                    {/* Header */}
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 14px", borderBottom: "1px solid #f3f3f3" }}>
+                      <div>
+                        <div style={{ fontSize: 11.5, color: "#999" }}>{fmtDate(o.createdAt)}</div>
+                        <div style={{ fontSize: 12.5, fontWeight: 600, color: "#444", marginTop: 2 }}>
+                          {o.tableNumber ? `Meja ${o.tableNumber}` : "Take Away"}
+                          {o.queueNumber && <span style={{ color: G, marginLeft: 6 }}>· No. {o.queueNumber}</span>}
+                        </div>
+                      </div>
+                      <div style={{ display: "flex", alignItems: "center", gap: 5, background: st.bg, color: st.color, padding: "5px 10px", borderRadius: 20, fontSize: 11, fontWeight: 700 }}>
+                        <span>{st.icon}</span>{st.label}
+                      </div>
+                    </div>
+
+                    {/* Items */}
+                    <div style={{ padding: "10px 14px" }}>
+                      {o.items.map((it, idx) => (
+                        <div key={idx} style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", padding: "4px 0", fontSize: 13 }}>
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <span style={{ fontWeight: 700, color: G, marginRight: 6 }}>{it.qty}×</span>
+                            <span style={{ color: "#333" }}>{it.name}</span>
+                            {it.modifiers.length > 0 && <div style={{ fontSize: 11, color: "#999", marginLeft: 22, marginTop: 1 }}>{it.modifiers.join(", ")}</div>}
+                            {it.notes && <div style={{ fontSize: 11, color: "#f59e0b", marginLeft: 22, marginTop: 1, fontStyle: "italic" }}>📝 {it.notes}</div>}
+                          </div>
+                          <span style={{ color: "#666", fontSize: 12.5, whiteSpace: "nowrap", marginLeft: 8 }}>{rupiah(it.unitPrice * it.qty)}</span>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Footer */}
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "11px 14px", borderTop: "1px solid #f3f3f3", background: "#fafafa" }}>
+                      <span style={{ fontSize: 11.5, color: "#999" }}>{itemCount} item · {o.paymentMethod === "QRIS" ? "QRIS" : "Tunai"}</span>
+                      <span style={{ fontWeight: 800, fontSize: 15, color: "#222" }}>{rupiah(o.total)}</span>
+                    </div>
+                  </div>
+                );
+              })}
+
+              <div style={{ textAlign: "center", fontSize: 11, color: "#bbb", marginTop: 8, lineHeight: 1.5 }}>
+                🔒 Riwayat tersimpan otomatis di perangkat ini<br/>tanpa perlu login
+              </div>
+            </div>
+          )}
         </div>
-        <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 30, color: "#aaa" }}>
-          <History size={48} color="#ddd" />
-          <div style={{ fontWeight: 600, fontSize: 15, marginTop: 14, color: "#999" }}>Belum ada pesanan</div>
-          <div style={{ fontSize: 12, marginTop: 4, textAlign: "center", lineHeight: 1.5 }}>Pesanan yang sudah selesai akan muncul di sini. Scan QR di meja untuk mulai memesan.</div>
-        </div>
-      </div>
-    );
+      );
+    }
 
     if (subView === "language") return (
       <div style={{ flex: 1 }}>
