@@ -24,12 +24,12 @@ body::after{width:400px;height:400px;bottom:-150px;left:-150px}
 .brand-side{background:linear-gradient(135deg,#125229,#1b7a3d);color:#fff;padding:48px 40px;display:flex;flex-direction:column;justify-content:space-between;position:relative;overflow:hidden}
 .brand-side::before{content:"";position:absolute;width:300px;height:300px;background:rgba(255,255,255,.04);border-radius:50%;top:-100px;right:-100px}
 .brand-side::after{content:"";position:absolute;width:200px;height:200px;background:rgba(255,255,255,.04);border-radius:50%;bottom:-50px;left:-50px}
-.brand-logo{font-size:42px;margin-bottom:12px;position:relative}
+.brand-logo{width:64px;height:64px;border-radius:18px;margin-bottom:18px;background:linear-gradient(135deg,#1b7a3d 0%,#25a550 60%,#2dd16a 100%);display:flex;align-items:center;justify-content:center;box-shadow:0 8px 24px rgba(0,0,0,.25),inset 0 1px 0 rgba(255,255,255,.2);color:#fff}
 .brand-name{font-size:32px;font-weight:800;margin-bottom:8px;position:relative}
 .brand-tag{font-size:14px;opacity:.85;margin-bottom:32px;position:relative}
 .brand-features{position:relative}
 .feature{display:flex;align-items:flex-start;gap:12px;margin-bottom:18px;font-size:13.5px}
-.feature-icon{width:32px;height:32px;background:rgba(255,255,255,.15);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:16px}
+.feature-icon{width:34px;height:34px;background:rgba(255,255,255,.15);border-radius:9px;display:flex;align-items:center;justify-content:center;flex-shrink:0;color:#fff}
 .feature-text strong{display:block;font-weight:600;margin-bottom:2px}
 .feature-text span{opacity:.75;font-size:12px}
 .brand-foot{position:relative;font-size:11px;opacity:.6}
@@ -45,7 +45,7 @@ body::after{width:400px;height:400px;bottom:-150px;left:-150px}
 .input-wrap{position:relative}
 .input{width:100%;padding:12px 14px 12px 42px;border:1.5px solid var(--border);border-radius:10px;font-size:14px;transition:.15s;outline:none}
 .input:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(27,122,61,.1)}
-.input-icon{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--text-light);font-size:16px;pointer-events:none}
+.input-icon{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--text-light);pointer-events:none;display:flex;align-items:center}
 .show-pass{position:absolute;right:14px;top:50%;transform:translateY(-50%);cursor:pointer;color:var(--text-light);font-size:13px;background:none;border:none}
 
 .btn-login{width:100%;padding:13px;background:var(--primary);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;transition:.15s;margin-top:8px;display:flex;align-items:center;justify-content:center;gap:8px}
@@ -97,23 +97,36 @@ body::after{width:400px;height:400px;bottom:-150px;left:-150px}
 </head>
 <body>
 
+<!-- ICON LIBRARY -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <symbol id="i-logo" viewBox="0 0 32 32"><path d="M4 13.5h24l-1.6 9a4 4 0 0 1-4 3.3H9.6a4 4 0 0 1-4-3.3L4 13.5z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M2.5 13.5h27" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M11 9.5c0-1.5 1-2.5 2.5-2.5M16 9.5c0-1.5 1-2.5 2.5-2.5M21 9.5c0-1.5 1-2.5 2.5-2.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" fill="none"/></symbol>
+  <symbol id="i-zap" viewBox="0 0 24 24"><path d="M13 3 4 14h7l-1 7 9-11h-7l1-7z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" fill="none"/></symbol>
+  <symbol id="i-chart" viewBox="0 0 24 24"><path d="M4 19h16M7 16V10M12 16V5M17 16V13" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" fill="none"/></symbol>
+  <symbol id="i-lock" viewBox="0 0 24 24"><rect x="4" y="11" width="16" height="10" rx="2" stroke="currentColor" stroke-width="1.7" fill="none"/><path d="M8 11V8a4 4 0 0 1 8 0v3" stroke="currentColor" stroke-width="1.7" fill="none"/></symbol>
+  <symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="1.7" fill="none"/><path d="M4 21c0-4 3.5-7 8-7s8 3 8 7" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" fill="none"/></symbol>
+  <symbol id="i-alert" viewBox="0 0 24 24"><path d="M10.3 3.9 2.6 17a2 2 0 0 0 1.7 3h15.4a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round" fill="none"/><path d="M12 9v4M12 17h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12 5 5 9-11" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" fill="none"/></symbol>
+  <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.7" fill="none"/><path d="M12 8v.01M11 12h1v5h1" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-wave" viewBox="0 0 24 24"><path d="M7 11V6a2 2 0 0 1 4 0v6M11 6a2 2 0 0 1 4 0v6M15 8a2 2 0 0 1 4 0v6a7 7 0 0 1-14 0v-3a2 2 0 0 1 4 0" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" fill="none"/></symbol>
+</defs></svg>
+
 <div class="container">
   <div class="brand-side">
     <div>
-      <div class="brand-logo">🍜</div>
+      <div class="brand-logo"><svg width="32" height="32"><use href="#i-logo"/></svg></div>
       <div class="brand-name">Mie 99</div>
       <div class="brand-tag">Sistem Manajemen Restoran</div>
       <div class="brand-features">
         <div class="feature">
-          <div class="feature-icon">⚡</div>
+          <div class="feature-icon"><svg width="17" height="17"><use href="#i-zap"/></svg></div>
           <div class="feature-text"><strong>Real-time</strong><span>Pesanan langsung sync ke dapur</span></div>
         </div>
         <div class="feature">
-          <div class="feature-icon">📊</div>
+          <div class="feature-icon"><svg width="17" height="17"><use href="#i-chart"/></svg></div>
           <div class="feature-text"><strong>Analitik</strong><span>Laporan harian, mingguan, bulanan</span></div>
         </div>
         <div class="feature">
-          <div class="feature-icon">🔒</div>
+          <div class="feature-icon"><svg width="17" height="17"><use href="#i-lock"/></svg></div>
           <div class="feature-text"><strong>Multi-role</strong><span>Akses berbeda untuk setiap divisi</span></div>
         </div>
       </div>
@@ -123,23 +136,23 @@ body::after{width:400px;height:400px;bottom:-150px;left:-150px}
 
   <div class="form-side">
     <div class="form-head">
-      <div class="form-title">Selamat Datang 👋</div>
+      <div class="form-title" style="display:flex;align-items:center;gap:9px">Selamat Datang <svg width="22" height="22" style="color:#f59e0b"><use href="#i-wave"/></svg></div>
       <div class="form-sub">Masuk ke sistem dengan akun staff Anda</div>
     </div>
 
     <div class="error" id="error">
-      <span>⚠️</span><span id="error-msg">Username atau password salah</span>
+      <svg width="15" height="15"><use href="#i-alert"/></svg><span id="error-msg">Username atau password salah</span>
     </div>
 
     <div class="success-flash" id="success">
-      <span>✓</span><span id="success-msg"></span>
+      <svg width="15" height="15"><use href="#i-check"/></svg><span id="success-msg"></span>
     </div>
 
     <form onsubmit="login(event)">
       <div class="field">
         <label class="label">Username</label>
         <div class="input-wrap">
-          <span class="input-icon">👤</span>
+          <span class="input-icon"><svg width="16" height="16"><use href="#i-user"/></svg></span>
           <input class="input" id="username" autocomplete="username" placeholder="Masukkan username" required autofocus>
         </div>
       </div>
@@ -147,7 +160,7 @@ body::after{width:400px;height:400px;bottom:-150px;left:-150px}
       <div class="field">
         <label class="label">Password</label>
         <div class="input-wrap">
-          <span class="input-icon">🔒</span>
+          <span class="input-icon"><svg width="16" height="16"><use href="#i-lock"/></svg></span>
           <input class="input" id="password" type="password" autocomplete="current-password" placeholder="Masukkan password" required>
           <button type="button" class="show-pass" onclick="togglePass()" id="show-pass">Tampilkan</button>
         </div>
@@ -157,7 +170,7 @@ body::after{width:400px;height:400px;bottom:-150px;left:-150px}
     </form>
 
     <div class="demo-info">
-      <strong>📝 Akun Demo</strong>
+      <strong style="display:flex;align-items:center;gap:6px"><svg width="14" height="14"><use href="#i-info"/></svg>Akun Demo</strong>
       <div style="display:grid;gap:4px">
         <div>Admin: <code>admin</code> / <code>admin123</code></div>
         <div>Kasir: <code>kasir</code> / <code>kasir123</code></div>
