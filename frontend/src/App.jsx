@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import { ShoppingCart, Search, Menu as MenuIcon, X, Plus, Minus, Trash2, ChevronLeft, ChevronRight, MapPin, Clock, Phone, Navigation, CheckCircle2, Download, History, Globe, HelpCircle, Shield, ChevronDown } from "lucide-react";
+import { Analytics } from '@vercel/analytics/react';
 import { api } from "./api";
 
 // ============================================================
@@ -1455,6 +1456,7 @@ export default function App() {
         <div style={{ width: 40, height: 40, border: "4px solid rgba(255,255,255,.3)", borderTopColor: "#fff", borderRadius: "50%", animation: "spin .8s linear infinite" }} />
         <div style={{ color: "#fff", marginTop: 14, fontFamily: "'Poppins',sans-serif" }}>Sedang diproses...</div>
       </div>}
+      <Analytics />
     </div>
   );
 }
