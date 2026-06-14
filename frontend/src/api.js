@@ -1,374 +1,319 @@
-// ============================================================
-// OPTIMIZED API.JS untuk 100K traffic/hari
-// Ganti file asli: frontend/src/api.js
-// Changes: 
-// - Fix N+1 queries (proper SELECT joins)
-// - Hapus field yang tidak dipakai (.select specificity)
-// - Pagination cursor (bukan limit(500))
-// - Disable realtime untuk non-realtime tables
-// ============================================================
+import { supabase } from "./supabase";
 
-const SB_URL = "https://lhcbbupqhpljhtcdrloy.supabase.co";
-const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxoY2JidXBxaHBsamh0Y2RybG95Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEwMTM4MDksImV4cCI6MjA5NjU4OTgwOX0.V5SuBRkV0lTjTtC2sZ5siCXOT8Zpapv2YGKbFAgTSLs";
-const RID = "11111111-1111-1111-1111-111111111111";
+const params = new URLSearchParams(window.location.search);
+const RESTAURANT_ID = params.get("restaurant") || "11111111-1111-1111-1111-111111111111";
 
-import { createClient } from "@supabase/supabase-js";
-export const sb = createClient(SB_URL, SB_KEY);
-
-// ============================================================
-// CACHING LAYER (localStorage + in-memory)
-// ============================================================
-const CACHE = {
-  categories: { data: null, age: 0, ttl: 3600000 }, // 1 jam
-  menuItems: { data: null, age: 0, ttl: 1800000 },  // 30 menit
-  tables: { data: null, age: 0, ttl: 3600000 },     // 1 jam
-};
-
-function getCacheKey(key) {
-  const now = Date.now();
-  if (CACHE[key] && now - CACHE[key].age < CACHE[key].ttl) {
-    return CACHE[key].data;
+function getTableNumber() {
+  const t = params.get("table");
+  if (t) return parseInt(t, 10);
+  const token = params.get("token");
+  if (token) {
+    try {
+      const payload = token.split(".")[1]?.replace(/-/g, "+").replace(/_/g, "/");
+      const decoded = JSON.parse(atob(payload));
+      if (decoded.tableNumber) return decoded.tableNumber;
+    } catch (e) {}
   }
+  const m = params.get("meja");
+  if (m) return parseInt(m, 10);
   return null;
 }
 
-function setCache(key, data) {
-  CACHE[key] = { data, age: Date.now(), ttl: CACHE[key].ttl };
-}
+const tableNumber = getTableNumber();
 
 // ============================================================
-// 1. FETCH CATEGORIES (dengan cache)
+// DEVICE ID — penanda unik HP pelanggan (untuk riwayat tanpa login)
+// ID acak permanen disimpan di localStorage. Selama pelanggan pakai
+// HP & browser yang sama, riwayat selalu kebaca otomatis.
 // ============================================================
-export async function getCategories() {
-  // Check cache first
-  const cached = getCacheKey("categories");
-  if (cached) return cached;
-
-  const { data, error } = await sb
-    .from("menu_categories")
-    .select("id,name,sort_order") // ✅ HANYA field yang dipakai
-    .eq("restaurant_id", RID)
-    .order("sort_order");
-
-  if (error) throw error;
-  setCache("categories", data);
-  return data;
-}
-
-// ============================================================
-// 2. FETCH MENU ITEMS (dengan cache)
-// ============================================================
-export async function getMenuItems() {
-  const cached = getCacheKey("menuItems");
-  if (cached) return cached;
-
-  // ✅ SELECT SPECIFIC FIELDS — jangan .select("*")
-  const { data, error } = await sb
-    .from("menu_items")
-    .select(`
-      id,
-      name,
-      description,
-      base_price,
-      category_id,
-      image_url,
-      is_available,
-      menu_modifiers(
-        id,
-        name,
-        modifiers(id,name,price)
-      )
-    `)
-    .eq("restaurant_id", RID)
-    .eq("is_available", true); // ✅ Filter di DB, jangan di client
-
-  if (error) throw error;
-  setCache("menuItems", data);
-  return data;
-}
-
-// ============================================================
-// 3. FETCH TABLES (dengan cache)
-// ============================================================
-export async function getTables() {
-  const cached = getCacheKey("tables");
-  if (cached) return cached;
-
-  const { data, error } = await sb
-    .from("tables")
-    .select("id,table_number,qr_token") // ✅ Minimal fields
-    .eq("restaurant_id", RID)
-    .order("table_number");
-
-  if (error) throw error;
-  setCache("tables", data);
-  return data;
-}
-
-// ============================================================
-// 4. FETCH ORDERS (dengan pagination, bukan limit(500))
-// ============================================================
-export async function getOrdersPage(pageNum = 0, pageSize = 20) {
-  const offset = pageNum * pageSize;
-
-  // ✅ OPTIMIZED SELECT dengan proper joins — NO N+1
-  const { data, error, count } = await sb
-    .from("orders")
-    .select(
-      `
-      id,
-      created_at,
-      total_amount,
-      payment_method,
-      status,
-      customer_name,
-      queue_number,
-      tables!inner(table_number),
-      order_items(
-        id,
-        quantity,
-        notes,
-        total_price,
-        menu_items!inner(name),
-        order_item_modifiers(
-          order_item_id,
-          modifiers!inner(name)
-        )
-      )
-      `,
-      { count: "exact" } // untuk pagination total
-    )
-    .eq("restaurant_id", RID)
-    .order("created_at", { ascending: false })
-    .range(offset, offset + pageSize - 1); // ✅ PAGINATION bukan LIMIT
-
-  if (error) throw error;
-  return { data, count, pageNum, pageSize };
-}
-
-// ============================================================
-// 5. FETCH ORDERS TODAY (dashboard)
-// ============================================================
-export async function getOrdersToday() {
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-
-  const { data, error } = await sb
-    .from("orders")
-    .select(
-      `
-      id,
-      created_at,
-      total_amount,
-      payment_method,
-      status,
-      tables!inner(table_number),
-      order_items(
-        quantity,
-        total_price,
-        menu_items!inner(name),
-        order_item_modifiers(modifiers!inner(name))
-      )
-      `
-    )
-    .eq("restaurant_id", RID)
-    .gte("created_at", today.toISOString())
-    .order("created_at", { ascending: false });
-
-  if (error) throw error;
-  return data;
-}
-
-// ============================================================
-// 6. CREATE ORDER (dengan optimistic update)
-// ============================================================
-export async function createOrder(lineItems, tableId, customerName, paymentMethod) {
-  if (!tableId) {
-    throw new Error("Nomor meja tidak terdeteksi. Silakan scan ulang QR code.");
+function getOrCreateDeviceId() {
+  try {
+    const KEY = "mie99_device_id";
+    let id = localStorage.getItem(KEY);
+    if (!id) {
+      // Buat ID unik: timestamp + random, sangat kecil kemungkinan tabrakan
+      id = "dev_" +
+        Date.now().toString(36) +
+        Math.random().toString(36).slice(2, 12) +
+        Math.random().toString(36).slice(2, 8);
+      localStorage.setItem(KEY, id);
+    }
+    return id;
+  } catch (e) {
+    // Kalau localStorage diblokir (private mode dll), pakai session sementara
+    if (!window.__mie99_tmp_device)
+      window.__mie99_tmp_device = "tmp_" + Math.random().toString(36).slice(2, 14);
+    return window.__mie99_tmp_device;
   }
+}
 
-  const { data: table } = await sb
-    .from("tables")
-    .select("id")
-    .eq("restaurant_id", RID)
-    .eq("id", tableId)
-    .single();
+const deviceId = getOrCreateDeviceId();
 
-  if (!table) {
-    throw new Error(`Meja tidak ditemukan di database. Silakan scan ulang QR code.`);
-  }
+export const api = {
+  hasSession: Boolean(tableNumber),
+  tableNumber,
+  deviceId,
+  restaurantId: RESTAURANT_ID,
 
-  const subtotal = lineItems.reduce((sum, item) => sum + item.total_price, 0);
-  const tax = Math.round(subtotal * 0.1);
-  const rounding = Math.ceil(subtotal + tax) - (subtotal + tax);
+  async validateTable() {
+    try {
+      const { data: restaurant, error: rErr } = await supabase
+        .from("restaurants").select("*").eq("id", RESTAURANT_ID).single();
+      if (rErr) console.error("validateTable restaurant error:", rErr);
 
-  const { data: order, error } = await sb
-    .from("orders")
-    .insert([
-      {
-        restaurant_id: RID,
+      let table = null;
+      if (tableNumber) {
+        const { data, error: tErr } = await supabase
+          .from("tables").select("*").eq("restaurant_id", RESTAURANT_ID).eq("table_number", tableNumber).single();
+        if (tErr) console.error("validateTable table error:", tErr);
+        table = data;
+      }
+      return {
+        restaurant: restaurant
+          ? { id: restaurant.id, name: restaurant.name, address: restaurant.address, hours: (restaurant.open_hour || "10:00") + " - " + (restaurant.close_hour || "22:00") }
+          : { id: RESTAURANT_ID, name: "Mie 99", address: "Jl. Pahlawan No. 99, Mojokerto", hours: "10:00 - 22:00" },
+        table: table ? { id: table.id, number: table.table_number } : { id: null, number: tableNumber },
+      };
+    } catch (e) {
+      console.error("validateTable error:", e);
+      return {
+        restaurant: { id: RESTAURANT_ID, name: "Mie 99", address: "", hours: "10:00 - 22:00" },
+        table: { id: null, number: tableNumber },
+      };
+    }
+  },
+
+  async getMenu() {
+    try {
+      // Ambil kategori
+      const { data: categories, error: cErr } = await supabase
+        .from("menu_categories").select("*").eq("restaurant_id", RESTAURANT_ID).order("sort_order");
+      if (cErr) console.error("getMenu categories error:", cErr);
+
+      // Ambil semua menu item
+      const { data: items, error: iErr } = await supabase
+        .from("menu_items").select("*").eq("restaurant_id", RESTAURANT_ID).eq("is_available", true).order("sort_order");
+      if (iErr) console.error("getMenu items error:", iErr);
+
+      // Ambil semua modifier groups
+      const itemIds = (items || []).map(i => i.id);
+      let groups = [];
+      if (itemIds.length > 0) {
+        const { data: gData, error: gErr } = await supabase
+          .from("modifier_groups").select("*").in("menu_item_id", itemIds);
+        if (gErr) console.error("getMenu groups error:", gErr);
+        groups = gData || [];
+      }
+
+      // Ambil semua modifiers
+      const groupIds = groups.map(g => g.id);
+      let modifiers = [];
+      if (groupIds.length > 0) {
+        const { data: mData, error: mErr } = await supabase
+          .from("modifiers").select("*").in("group_id", groupIds);
+        if (mErr) console.error("getMenu modifiers error:", mErr);
+        modifiers = mData || [];
+      }
+
+      // Susun jadi struktur yang diharapkan App.jsx
+      const mapped = (categories || []).map(c => ({
+        id: c.id,
+        name: c.name,
+        items: (items || []).filter(it => it.category_id === c.id).map(it => {
+          const itemGroups = groups.filter(g => g.menu_item_id === it.id);
+          const hasSpicy = itemGroups.some(g => g.name?.toUpperCase().includes("PEDAS"));
+          return {
+            id: it.id,
+            name: it.name,
+            price: it.base_price,
+            desc: it.description || "",
+            type: it.is_package ? "combo" : hasSpicy ? "spicy" : "simple",
+            groups: itemGroups.map(g => ({
+              id: g.id,
+              name: g.name,
+              min: g.min_selections,
+              max: g.max_selections,
+              options: modifiers.filter(m => m.group_id === g.id).map(m => ({
+                id: m.id,
+                name: m.name,
+                add: m.additional_price,
+              })),
+            })),
+          };
+        }),
+      }));
+
+      console.log("Menu loaded:", mapped.map(c => c.name + " (" + c.items.length + " items)"));
+      return { categories: mapped };
+    } catch (e) {
+      console.error("getMenu error:", e);
+      return { categories: [] };
+    }
+  },
+
+  async createOrder({ customerName, phone, email, paymentMethod, items }) {
+    try {
+      let tableId = null;
+      if (tableNumber) {
+        const { data } = await supabase
+          .from("tables").select("id").eq("restaurant_id", RESTAURANT_ID).eq("table_number", tableNumber).single();
+        tableId = data?.id;
+      }
+
+      // Validasi: order WAJIB punya meja. Tanpa ini, database menolak (table_id not-null).
+      if (!tableId) {
+        throw new Error(
+          tableNumber
+            ? `Meja ${tableNumber} tidak ditemukan. Silakan scan ulang QR di meja Anda.`
+            : "Nomor meja tidak terdeteksi. Silakan scan ulang QR yang ada di meja Anda untuk memesan."
+        );
+      }
+
+      const subtotal = items.reduce((s, it) => s + (it.unitPrice || 0) * (it.quantity || it.qty || 1), 0);
+      const tax = Math.round(subtotal * 0.1);
+      const rounding = subtotal > 0 ? -(((subtotal + tax) % 100) || 0) : 0;
+      const totalAmount = subtotal + tax + rounding;
+
+      const { data: order, error } = await supabase.from("orders").insert({
+        restaurant_id: RESTAURANT_ID,
         table_id: tableId,
-        customer_name: customerName || "",
+        customer_name: customerName,
+        phone,
+        email: email || null,
+        payment_method: paymentMethod,
+        status: "PENDING",
         subtotal,
         tax,
         rounding,
-        total_amount: Math.ceil(subtotal + tax),
-        payment_method: paymentMethod,
-        status: "PENDING",
-      },
-    ])
-    .select()
-    .single();
+        total_amount: totalAmount,
+        customer_device: deviceId,
+      }).select().single();
 
-  if (error) throw error;
+      if (error) throw new Error(error.message);
 
-  // Insert order items
-  const items = lineItems.map((item) => ({
-    order_id: order.id,
-    menu_item_id: item.itemId,
-    quantity: item.qty,
-    notes: item.notes,
-    total_price: item.total_price,
-  }));
+      for (const item of items) {
+        const { data: orderItem } = await supabase.from("order_items").insert({
+          order_id: order.id,
+          menu_item_id: item.menuItemId || item.itemId,
+          quantity: item.quantity || item.qty || 1,
+          notes: item.notes || "",
+          unit_price: item.unitPrice || 0,
+          total_price: (item.unitPrice || 0) * (item.quantity || item.qty || 1),
+        }).select().single();
 
-  const { error: itemsError } = await sb.from("order_items").insert(items);
-  if (itemsError) throw itemsError;
-
-  // Insert modifiers
-  const modifiers = [];
-  lineItems.forEach((item) => {
-    item.modifiers.forEach((mod) => {
-      modifiers.push({
-        order_item_id: item.lineId, // Perlu mapping dari lineId → order_item.id
-        modifier_id: mod.id,
-      });
-    });
-  });
-
-  if (modifiers.length > 0) {
-    const { error: modsError } = await sb
-      .from("order_item_modifiers")
-      .insert(modifiers);
-    if (modsError) throw modsError;
-  }
-
-  return order;
-}
-
-// ============================================================
-// 7. UPDATE ORDER STATUS
-// ============================================================
-export async function updateOrderStatus(orderId, newStatus) {
-  const { error } = await sb
-    .from("orders")
-    .update({ status: newStatus })
-    .eq("id", orderId)
-    .eq("restaurant_id", RID); // ✅ RLS check di DB
-
-  if (error) throw error;
-}
-
-// ============================================================
-// 8. FETCH FEEDBACK (dengan pagination)
-// ============================================================
-export async function getFeedbackPage(pageNum = 0, pageSize = 20) {
-  const offset = pageNum * pageSize;
-
-  const { data, error, count } = await sb
-    .from("feedback")
-    .select(
-      `
-      id,
-      created_at,
-      rating,
-      category,
-      message,
-      is_read,
-      table:tables(table_number)
-      `,
-      { count: "exact" }
-    )
-    .eq("restaurant_id", RID)
-    .order("created_at", { ascending: false })
-    .range(offset, offset + pageSize - 1);
-
-  if (error) throw error;
-  return { data, count, pageNum, pageSize };
-}
-
-// ============================================================
-// 9. REALTIME SUBSCRIPTIONS — HANYA untuk yang perlu
-// ============================================================
-
-// ✅ KEEP REALTIME — dapur perlu notifikasi instant
-export function subscribeOrdersRealtime(callback) {
-  return sb
-    .channel("kitchen-orders-rt")
-    .on(
-      "postgres_changes",
-      {
-        event: "INSERT,UPDATE",
-        schema: "public",
-        table: "orders",
-        filter: `restaurant_id=eq.${RID}`,
-      },
-      callback
-    )
-    .subscribe();
-}
-
-// ✅ FEEDBACK realtime (admin perlu tahu ada feedback baru)
-export function subscribeFeedbackRealtime(callback) {
-  return sb
-    .channel("feedback-rt")
-    .on(
-      "postgres_changes",
-      {
-        event: "INSERT",
-        schema: "public",
-        table: "feedback",
-        filter: `restaurant_id=eq.${RID}`,
-      },
-      callback
-    )
-    .subscribe();
-}
-
-// ❌ JANGAN realtime untuk ini (pakai polling):
-// - menu_items (jarang berubah, polling 30 menit ok)
-// - menu_categories (jarang berubah)
-// - order_items (realtime order sudah cukup)
-
-// ============================================================
-// 10. POLLING FUNCTION (untuk non-realtime tables)
-// ============================================================
-export async function startPolling(interval = 30000) {
-  // Refresh menu items every 30 seconds (cache akan handle duplikat request)
-  setInterval(async () => {
-    try {
-      const cached = getCacheKey("menuItems");
-      if (!cached || Date.now() - CACHE.menuItems.age > 1800000) {
-        await getMenuItems(); // Will re-fetch dan update cache
+        if (item.modifierIds?.length && orderItem) {
+          for (const modId of item.modifierIds) {
+            await supabase.from("order_item_modifiers").insert({
+              order_item_id: orderItem.id,
+              modifier_id: modId,
+              price_at_order: 0,
+            });
+          }
+        }
       }
-    } catch (error) {
-      console.error("Polling error:", error);
-    }
-  }, interval);
-}
 
-// ============================================================
-// 11. EXPORT DEFAULT
-// ============================================================
-export default {
-  getCategories,
-  getMenuItems,
-  getTables,
-  getOrdersPage,
-  getOrdersToday,
-  createOrder,
-  updateOrderStatus,
-  getFeedbackPage,
-  subscribeOrdersRealtime,
-  subscribeFeedbackRealtime,
-  startPolling,
+      return {
+        orderId: order.id,
+        status: order.status,
+        totals: { subtotal, tax, rounding, totalAmount },
+        qris: paymentMethod === "QRIS" ? { payload: "mock-qris-" + order.id.slice(0, 8) } : null,
+      };
+    } catch (e) {
+      console.error("createOrder error:", e);
+      throw e;
+    }
+  },
+
+  async getOrderStatus(orderId) {
+    const { data } = await supabase.from("orders").select("status, queue_number").eq("id", orderId).single();
+    return { status: data?.status, queueNumber: data?.queue_number };
+  },
+
+  // ============================================================
+  // RIWAYAT PESANAN — query semua order milik device ini
+  // ============================================================
+  async getOrderHistory() {
+    try {
+      const { data, error } = await supabase
+        .from("orders")
+        .select(`
+          id, status, queue_number, customer_name,
+          subtotal, tax, total_amount, payment_method,
+          created_at, paid_at,
+          tables ( table_number ),
+          order_items (
+            quantity, unit_price, notes,
+            menu_items ( name ),
+            order_item_modifiers ( modifiers ( name ) )
+          )
+        `)
+        .eq("restaurant_id", RESTAURANT_ID)
+        .eq("customer_device", deviceId)
+        .order("created_at", { ascending: false })
+        .limit(50);
+
+      if (error) { console.error("getOrderHistory error:", error); return []; }
+
+      return (data || []).map(o => ({
+        id: o.id,
+        status: o.status,
+        queueNumber: o.queue_number,
+        customerName: o.customer_name,
+        subtotal: o.subtotal,
+        tax: o.tax,
+        total: o.total_amount,
+        paymentMethod: o.payment_method,
+        createdAt: o.created_at,
+        paidAt: o.paid_at,
+        tableNumber: o.tables?.table_number || null,
+        items: (o.order_items || []).map(it => ({
+          name: it.menu_items?.name || "Item",
+          qty: it.quantity,
+          unitPrice: it.unit_price,
+          notes: it.notes,
+          modifiers: (it.order_item_modifiers || [])
+            .map(m => m.modifiers?.name).filter(Boolean),
+        })),
+      }));
+    } catch (e) {
+      console.error("getOrderHistory exception:", e);
+      return [];
+    }
+  },
+
+  async simulatePaid(orderId) {
+    const queueNumber = "A-" + String(Math.floor(Math.random() * 90) + 10);
+    await supabase.from("orders").update({
+      status: "KITCHEN",
+      paid_at: new Date().toISOString(),
+      queue_number: queueNumber,
+    }).eq("id", orderId);
+    return { status: "KITCHEN", queueNumber };
+  },
+
+
+  async getSettings() {
+    try {
+      const { data } = await supabase.from("restaurants").select("*").eq("id", RESTAURANT_ID).single();
+      const { data: banners } = await supabase.from("banners").select("*").eq("restaurant_id", RESTAURANT_ID).eq("is_active", true).order("sort_order");
+      return {
+        name: data?.name || "Mie 99",
+        address: data?.address || "",
+        phone: data?.phone || "",
+        hours: data?.hours_full || "10:00 - 22:00 WIB",
+        mapsUrl: data?.maps_url || "",
+        schedule: data?.schedule_json ? JSON.parse(data.schedule_json) : [],
+        faq: data?.faq_json ? JSON.parse(data.faq_json) : [],
+        privacy: data?.privacy_text || "",
+        banners: banners || [],
+      };
+    } catch (e) {
+      console.error("getSettings error:", e);
+      return { name: "Mie 99", address: "", phone: "", hours: "", schedule: [], faq: [], privacy: "", banners: [] };
+    }
+  },
+
+  subscribeOrders(callback) {
+    return supabase.channel("orders-changes").on("postgres_changes", { event: "*", schema: "public", table: "orders" }, callback).subscribe();
+  },
 };
