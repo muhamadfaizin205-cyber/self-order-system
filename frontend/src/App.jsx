@@ -104,6 +104,40 @@ const G2 = "#25a550";
 const GL = "#e6f4ea";
 
 // ============================================================
+// ICON COMPONENT — SVG profesional menggantikan emoji
+// ============================================================
+const ICONS = {
+  logo: <><path d="M4 13.5h24l-1.6 9a4 4 0 0 1-4 3.3H9.6a4 4 0 0 1-4-3.3L4 13.5z" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round"/><path d="M2.5 13.5h27" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/><path d="M11 9.5c0-1.5 1-2.5 2.5-2.5M16 9.5c0-1.5 1-2.5 2.5-2.5M21 9.5c0-1.5 1-2.5 2.5-2.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" fill="none"/></>,
+  flame: <path d="M8.5 14.5A2.5 2.5 0 0 0 11 17c1.4 0 2.5-1.1 2.5-2.5 0-1.2-1-2.2-2.5-3.5 0 0 1-1 1-2.5 0-2.5-1.5-4-3-4.5 1 4-3 6-3 9 0 2.8 2.2 5 5 5s5-2.2 5-5c0-2.4-1.3-4.1-2.5-5.5 0 1.5-.5 2.5-2 2.5z" stroke="currentColor" strokeWidth="1.7" fill="none" strokeLinejoin="round"/>,
+  pin: <><path d="M12 2a7 7 0 0 0-7 7c0 5 7 13 7 13s7-8 7-13a7 7 0 0 0-7-7z" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" fill="none"/><circle cx="12" cy="9" r="2.5" stroke="currentColor" strokeWidth="1.7" fill="none"/></>,
+  cart: <><circle cx="9" cy="20" r="1.6" stroke="currentColor" strokeWidth="1.6" fill="none"/><circle cx="18" cy="20" r="1.6" stroke="currentColor" strokeWidth="1.6" fill="none"/><path d="M3 4h2.5l2.7 12.5h11l2.3-9H7" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" fill="none"/></>,
+  chef: <><path d="M6 12.5c-2 0-3-1.7-3-3.5C3 6.5 5 5 7 5c.5-1.8 2.4-3 4.5-3S15.5 3.2 16 5c2 0 4 1.5 4 4 0 1.8-1 3.5-3 3.5" stroke="currentColor" strokeWidth="1.7" fill="none" strokeLinejoin="round"/><path d="M6 12.5h12V19a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2v-6.5z" stroke="currentColor" strokeWidth="1.7" fill="none" strokeLinejoin="round"/></>,
+  checkCircle: <><circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="1.7" fill="none"/><path d="m8 12 3 3 5-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none"/></>,
+  xCircle: <><circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="1.7" fill="none"/><path d="m9 9 6 6M15 9l-6 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></>,
+  check: <path d="m5 12 5 5 9-11" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" fill="none"/>,
+  x: <path d="m6 6 12 12M18 6 6 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>,
+  note: <><path d="M5 4h11l4 4v12a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" fill="none"/><path d="M15 4v5h5M8 13h8M8 17h6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></>,
+  lock: <><rect x="4" y="11" width="16" height="10" rx="2" stroke="currentColor" strokeWidth="1.7" fill="none"/><path d="M8 11V8a4 4 0 0 1 8 0v3" stroke="currentColor" strokeWidth="1.7" fill="none"/></>,
+  sunrise: <><circle cx="12" cy="14" r="3" stroke="currentColor" strokeWidth="1.7" fill="none"/><path d="M12 4v2M5.5 7.5l1.4 1.4M2 14h2M20 14h2M17.1 8.9l1.4-1.4M3 20h18M8 18l1-2h6l1 2" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" fill="none"/></>,
+  sun: <><circle cx="12" cy="12" r="4" stroke="currentColor" strokeWidth="1.7" fill="none"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M16.9 16.9l2.2 2.2M4.9 19.1l2.1-2.2M16.9 7.1l2.2-2.2" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round"/></>,
+  sunset: <><circle cx="12" cy="14" r="3" stroke="currentColor" strokeWidth="1.7" fill="none"/><path d="M12 9V4M5.5 7.5l1.4 1.4M2 14h2M20 14h2M17.1 8.9l1.4-1.4M3 20h18M16 18l-1-2H9l-1 2" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" fill="none"/></>,
+  moon: <path d="M21 13a8 8 0 0 1-10-10 8 8 0 1 0 10 10z" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" fill="none"/>,
+  utensils: <><path d="M7 2v8a3 3 0 0 0 3 3v9M5 2v8M10 2v8M16 2c-1 0-3 1.5-3 5s2 5 3 5v9" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" fill="none"/></>,
+  camera: <><path d="M4 8h3l2-3h6l2 3h3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" fill="none"/><circle cx="12" cy="13" r="3.5" stroke="currentColor" strokeWidth="1.7" fill="none"/></>,
+  star: <path d="M12 3 14.6 9 21 9.7l-4.7 4.5L17.6 21 12 17.6 6.4 21l1.3-6.8L3 9.7 9.4 9 12 3z" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" fill="none"/>,
+  starFill: <path d="M12 3 14.6 9 21 9.7l-4.7 4.5L17.6 21 12 17.6 6.4 21l1.3-6.8L3 9.7 9.4 9 12 3z" fill="currentColor"/>,
+  alert: <><path d="M10.3 3.9 2.6 17a2 2 0 0 0 1.7 3h15.4a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" fill="none"/><path d="M12 9v4M12 17h.01" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></>,
+  info: <><circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="1.7" fill="none"/><path d="M12 8v.01M11 12h1v5h1" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/></>,
+  clock: <><circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="1.7" fill="none"/><path d="M12 7v5l3 2" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" fill="none"/></>,
+};
+function Icon({ name, size = 18, style }) {
+  return <svg width={size} height={size} viewBox="0 0 24 24" style={{ flexShrink: 0, ...style }}>{ICONS[name]}</svg>;
+}
+function IconLogo({ size = 24, style }) {
+  return <svg width={size} height={size} viewBox="0 0 32 32" style={{ flexShrink: 0, ...style }}>{ICONS.logo}</svg>;
+}
+
+// ============================================================
 // SISTEM TOAST GLOBAL (notif modern, pengganti alert)
 // Dipanggil dari komponen mana pun via window event — aman, tanpa props.
 // ============================================================
@@ -128,9 +162,9 @@ function ToastHost() {
   }, []);
 
   const STYLE = {
-    success: { bg: "linear-gradient(135deg,#1b7a3d,#25a550)", icon: "✓", ring: "rgba(37,165,80,.45)" },
-    error:   { bg: "linear-gradient(135deg,#c1121f,#e03131)", icon: "!", ring: "rgba(224,49,49,.45)" },
-    info:    { bg: "linear-gradient(135deg,#1b7a3d,#25a550)", icon: "i", ring: "rgba(37,165,80,.45)" },
+    success: { bg: "linear-gradient(135deg,#1b7a3d,#25a550)", iconName: "check", ring: "rgba(37,165,80,.45)" },
+    error:   { bg: "linear-gradient(135deg,#c1121f,#e03131)", iconName: "alert", ring: "rgba(224,49,49,.45)" },
+    info:    { bg: "linear-gradient(135deg,#1b7a3d,#25a550)", iconName: "info", ring: "rgba(37,165,80,.45)" },
   };
 
   return (
@@ -156,8 +190,8 @@ function ToastHost() {
               flexShrink: 0, width: 30, height: 30, borderRadius: "50%",
               background: "rgba(255,255,255,.22)", display: "flex",
               alignItems: "center", justifyContent: "center",
-              fontWeight: 800, fontSize: 16,
-            }}>{s.icon}</div>
+              color: "#fff",
+            }}><Icon name={s.iconName} size={17} /></div>
             <div style={{ fontSize: 13.5, fontWeight: 600, lineHeight: 1.35, flex: 1 }}>{t.message}</div>
           </div>
         );
@@ -244,7 +278,7 @@ body{background:#1a1a1a;font-family:'Poppins',sans-serif}
 // ============================================================
 function BannerCarousel({ banners }) {
   const [idx, setIdx] = useState(0);
-  const list = banners && banners.length ? banners : [{ image_url: "https://images.unsplash.com/photo-1626804475297-41608ea09aeb?w=800&h=400&fit=crop", title: "🍜 Mie 99", subtitle: "Pedas nampol bikin nagih" }];
+  const list = banners && banners.length ? banners : [{ image_url: "https://images.unsplash.com/photo-1626804475297-41608ea09aeb?w=800&h=400&fit=crop", title: "Mie 99", subtitle: "Pedas nampol bikin nagih" }];
   useEffect(() => {
     if (list.length <= 1) return;
     const t = setInterval(() => setIdx(i => (i + 1) % list.length), 4000);
@@ -327,7 +361,7 @@ function RecoScroll({ items, onAdd }) {
   return (
     <div style={{ position: "relative", marginBottom: 18 }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
-        <div style={{ fontWeight: 800, fontSize: 16, color: "#222" }}>Menu Andalan 🔥</div>
+        <div style={{ fontWeight: 800, fontSize: 16, color: "#222", display: "flex", alignItems: "center", gap: 8 }}>Menu Andalan <span style={{ color: "#ef4444" }}><Icon name="flame" size={18}/></span></div>
         <div style={{ display: "flex", gap: 4 }}>
           <button className="tap" onClick={() => scroll(-1)} style={{ width: 28, height: 28, borderRadius: 8, border: "1px solid #ddd", background: "#fff", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}><ChevronLeft size={14} /></button>
           <button className="tap" onClick={() => scroll(1)} style={{ width: 28, height: 28, borderRadius: 8, border: "1px solid #ddd", background: "#fff", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}><ChevronRight size={14} /></button>
@@ -462,7 +496,7 @@ function SideDrawer({ open, onClose, settings, tableNumber, cartCount, subtotal 
                 <div style={{ fontSize: 12, fontWeight: 600, marginBottom: 8, color: "#333" }}>RATING ANDA</div>
                 <div style={{ display: "flex", gap: 6, justifyContent: "center" }}>
                   {[1, 2, 3, 4, 5].map(n => (
-                    <button key={n} onClick={() => setFbRating(n)} style={{ background: "none", border: "none", cursor: "pointer", fontSize: 32, color: n <= fbRating ? "#f59e0b" : "#ddd", padding: 0, transition: ".15s" }}>★</button>
+                    <button key={n} onClick={() => setFbRating(n)} style={{ background: "none", border: "none", cursor: "pointer", color: n <= fbRating ? "#f59e0b" : "#ddd", padding: 0, transition: ".15s", display: "inline-flex" }} aria-label={`Rating ${n}`}><Icon name={n <= fbRating ? "starFill" : "star"} size={32}/></button>
                   ))}
                 </div>
                 {fbRating > 0 && <div style={{ textAlign: "center", fontSize: 11, color: "#888", marginTop: 4 }}>{["", "Sangat Buruk", "Kurang", "Cukup", "Baik", "Sangat Baik"][fbRating]}</div>}
@@ -492,11 +526,11 @@ function SideDrawer({ open, onClose, settings, tableNumber, cartCount, subtotal 
 
     if (subView === "history") {
       const STATUS_MAP = {
-        PENDING:   { label: "Menunggu Bayar", color: "#f59e0b", bg: "#fef3c7", icon: "⏳" },
-        KITCHEN:   { label: "Sedang Dimasak",  color: "#3b82f6", bg: "#dbeafe", icon: "🍳" },
-        PAID:      { label: "Sedang Dimasak",  color: "#3b82f6", bg: "#dbeafe", icon: "🍳" },
-        DONE:      { label: "Selesai",         color: "#16a34a", bg: "#dcfce7", icon: "✅" },
-        CANCELLED: { label: "Dibatalkan",      color: "#ef4444", bg: "#fee2e2", icon: "✖️" },
+        PENDING:   { label: "Menunggu Bayar", color: "#f59e0b", bg: "#fef3c7", iconName: "clock" },
+        KITCHEN:   { label: "Sedang Dimasak",  color: "#3b82f6", bg: "#dbeafe", iconName: "chef" },
+        PAID:      { label: "Sedang Dimasak",  color: "#3b82f6", bg: "#dbeafe", iconName: "chef" },
+        DONE:      { label: "Selesai",         color: "#16a34a", bg: "#dcfce7", iconName: "checkCircle" },
+        CANCELLED: { label: "Dibatalkan",      color: "#ef4444", bg: "#fee2e2", iconName: "xCircle" },
       };
       const fmtDate = (iso) => {
         if (!iso) return "";
@@ -570,7 +604,7 @@ function SideDrawer({ open, onClose, settings, tableNumber, cartCount, subtotal 
                         </div>
                       </div>
                       <div style={{ display: "flex", alignItems: "center", gap: 5, background: st.bg, color: st.color, padding: "5px 10px", borderRadius: 20, fontSize: 11, fontWeight: 700 }}>
-                        <span>{st.icon}</span>{st.label}
+                        <Icon name={st.iconName} size={13}/>{st.label}
                       </div>
                     </div>
 
@@ -582,7 +616,7 @@ function SideDrawer({ open, onClose, settings, tableNumber, cartCount, subtotal 
                             <span style={{ fontWeight: 700, color: G, marginRight: 6 }}>{it.qty}×</span>
                             <span style={{ color: "#333" }}>{it.name}</span>
                             {it.modifiers.length > 0 && <div style={{ fontSize: 11, color: "#999", marginLeft: 22, marginTop: 1 }}>{it.modifiers.join(", ")}</div>}
-                            {it.notes && <div style={{ fontSize: 11, color: "#f59e0b", marginLeft: 22, marginTop: 1, fontStyle: "italic" }}>📝 {it.notes}</div>}
+                            {it.notes && <div style={{ fontSize: 11, color: "#f59e0b", marginLeft: 22, marginTop: 1, fontStyle: "italic", display: "flex", alignItems: "flex-start", gap: 4 }}><Icon name="note" size={12} style={{ marginTop: 1 }}/><span>{it.notes}</span></div>}
                           </div>
                           <span style={{ color: "#666", fontSize: 12.5, whiteSpace: "nowrap", marginLeft: 8 }}>{rupiah(it.unitPrice * it.qty)}</span>
                         </div>
@@ -598,8 +632,9 @@ function SideDrawer({ open, onClose, settings, tableNumber, cartCount, subtotal 
                 );
               })}
 
-              <div style={{ textAlign: "center", fontSize: 11, color: "#bbb", marginTop: 8, lineHeight: 1.5 }}>
-                🔒 Riwayat tersimpan otomatis di perangkat ini<br/>tanpa perlu login
+              <div style={{ textAlign: "center", fontSize: 11, color: "#bbb", marginTop: 8, lineHeight: 1.5, display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
+                <Icon name="lock" size={14}/>
+                <span>Riwayat tersimpan otomatis di perangkat ini<br/>tanpa perlu login</span>
               </div>
             </div>
           )}
@@ -614,13 +649,13 @@ function SideDrawer({ open, onClose, settings, tableNumber, cartCount, subtotal 
           <span style={{ fontWeight: 700, fontSize: 15 }}>Pilih Bahasa</span>
         </div>
         <div style={{ padding: "8px 0" }}>
-          {[{ code: "id", flag: "🇮🇩", name: "Bahasa Indonesia", sub: "Indonesian" }, { code: "en", flag: "🇬🇧", name: "English", sub: "Inggris" }].map(l => (
+          {[{ code: "id", flagText: "ID", flagBg: "#dc2626", name: "Bahasa Indonesia", sub: "Indonesian" }, { code: "en", flagText: "EN", flagBg: "#1d4ed8", name: "English", sub: "Inggris" }].map(l => (
             <button key={l.code} className="tap" onClick={() => setLang(l.code)} style={{
               width: "100%", display: "flex", alignItems: "center", gap: 14, padding: "16px 20px",
               border: "none", background: lang === l.code ? GL : "transparent", cursor: "pointer", textAlign: "left",
               transition: "background .15s",
             }}>
-              <span style={{ fontSize: 24 }}>{l.flag}</span>
+              <span style={{ width: 32, height: 32, borderRadius: 8, background: l.flagBg, color: "#fff", display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 800, letterSpacing: ".5px" }}>{l.flagText}</span>
               <div style={{ flex: 1 }}>
                 <div style={{ fontWeight: 600, fontSize: 14, color: "#222" }}>{l.name}</div>
                 <div style={{ fontSize: 11, color: "#999" }}>{l.sub}</div>
@@ -698,22 +733,22 @@ function SideDrawer({ open, onClose, settings, tableNumber, cartCount, subtotal 
           <div style={{ position: "absolute", bottom: -16, right: 20, width: 60, height: 60, borderRadius: "50%", background: "rgba(255,255,255,.05)", pointerEvents: "none" }} />
 
           {/* Brand */}
-          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
-            <div style={{ fontSize: 22 }}>🍜</div>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
+            <div style={{ width: 36, height: 36, borderRadius: 10, background: "rgba(255,255,255,.18)", display: "flex", alignItems: "center", justifyContent: "center", color: "#fff" }}><IconLogo size={22}/></div>
             <div style={{ fontSize: 18, fontWeight: 900, letterSpacing: "-.3px" }}>Mie 99</div>
           </div>
 
           {/* Dynamic greeting */}
           {(() => {
             const h = new Date().getHours();
-            const [salam, emoji] =
-              h < 11 ? ["Selamat Pagi", "🌅"] :
-              h < 15 ? ["Selamat Siang", "☀️"] :
-              h < 18 ? ["Selamat Sore", "🌆"] :
-                       ["Selamat Malam", "🌙"];
+            const [salam, ic] =
+              h < 11 ? ["Selamat Pagi", "sunrise"] :
+              h < 15 ? ["Selamat Siang", "sun"] :
+              h < 18 ? ["Selamat Sore", "sunset"] :
+                       ["Selamat Malam", "moon"];
             return (
-              <div style={{ fontSize: 13, fontWeight: 600, opacity: .92, marginBottom: 14 }}>
-                {emoji} {salam}, selamat datang!
+              <div style={{ fontSize: 13, fontWeight: 600, opacity: .95, marginBottom: 14, display: "flex", alignItems: "center", gap: 7 }}>
+                <Icon name={ic} size={16}/><span>{salam}, selamat datang!</span>
               </div>
             );
           })()}
@@ -728,7 +763,7 @@ function SideDrawer({ open, onClose, settings, tableNumber, cartCount, subtotal 
               fontSize: 11.5, fontWeight: 700,
               border: "1px solid rgba(255,255,255,.25)",
             }}>
-              📍 Meja {tableNumber || "—"}
+              <Icon name="pin" size={13}/><span>Meja {tableNumber || "—"}</span>
             </div>
 
             {/* Cart status chip — only if ada item */}
@@ -741,7 +776,7 @@ function SideDrawer({ open, onClose, settings, tableNumber, cartCount, subtotal 
                 border: "1px solid rgba(255,255,255,.3)",
                 animation: "pulse .8s ease 2",
               }}>
-                🛒 {cartCount} item · {rupiah(subtotal)}
+                <Icon name="cart" size={13}/><span>{cartCount} item · {rupiah(subtotal)}</span>
               </div>
             )}
           </div>
@@ -1089,7 +1124,7 @@ export default function App() {
               border: "1.5px dashed #ffb74d", display: "flex", alignItems: "center", gap: 12,
               animation: "pulse 3s ease infinite", cursor: "pointer",
             }}>
-              <div style={{ width: 42, height: 42, borderRadius: 12, background: "#ff9800", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20 }}>📷</div>
+              <div style={{ width: 42, height: 42, borderRadius: 12, background: "#ff9800", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center" }}><Icon name="camera" size={22}/></div>
               <div>
                 <div style={{ fontWeight: 700, fontSize: 14, color: "#e65100" }}>Scan QR di meja Anda</div>
                 <div style={{ fontSize: 11, color: "#888", marginTop: 2 }}>Arahkan kamera HP ke QR code untuk mulai pesan</div>
@@ -1255,8 +1290,8 @@ export default function App() {
           <div style={{ width: 22 }} />
         </div>
         <div style={{ flex: 1, overflowY: "auto", padding: 14 }}>
-          <div style={{ background: GL, color: G, borderRadius: 10, padding: "10px 14px", fontSize: 13, fontWeight: 600, marginBottom: 14 }}>
-            🍽️ Makan di tempat{outlet.table ? ` · Meja ${outlet.table}` : ""}
+          <div style={{ background: GL, color: G, borderRadius: 10, padding: "10px 14px", fontSize: 13, fontWeight: 600, marginBottom: 14, display: "flex", alignItems: "center", gap: 8 }}>
+            <Icon name="utensils" size={16}/><span>Makan di tempat{outlet.table ? ` · Meja ${outlet.table}` : ""}</span>
           </div>
           {cart.length === 0 && <div style={{ textAlign: "center", color: "#aaa", padding: 40, fontSize: 14 }}>Keranjang kosong</div>}
           {cart.map(line => (
@@ -1267,7 +1302,7 @@ export default function App() {
               <div style={{ flex: 1 }}>
                 <div style={{ fontWeight: 700, fontSize: 14 }}>{line.name}</div>
                 {line.detail.length > 0 && <div style={{ fontSize: 11, color: "#888", marginTop: 2 }}>{line.detail.join(", ")}</div>}
-                {line.notes && <div style={{ fontSize: 11, color: "#e65100", fontStyle: "italic", marginTop: 2 }}>📝 {line.notes}</div>}
+                {line.notes && <div style={{ fontSize: 11, color: "#e65100", fontStyle: "italic", marginTop: 2, display: "flex", alignItems: "flex-start", gap: 4 }}><Icon name="note" size={12} style={{ marginTop: 1 }}/><span>{line.notes}</span></div>}
                 <div style={{ fontWeight: 700, fontSize: 14, color: G, marginTop: 4 }}>{rupiah(line.unitPrice * line.qty)}</div>
               </div>
               <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", justifyContent: "space-between" }}>
@@ -1364,7 +1399,7 @@ export default function App() {
           <div style={{ width: 22 }} />
         </div>
         <div style={{ flex: 1, overflowY: "auto", padding: 14, textAlign: "center" }}>
-          <div style={{ background: GL, color: G, fontWeight: 700, borderRadius: 10, padding: 12, fontSize: 14, marginBottom: 18, animation: "pulse 2s ease infinite" }}>⏱ Selesaikan dalam {mm}:{ss}</div>
+          <div style={{ background: GL, color: G, fontWeight: 700, borderRadius: 10, padding: 12, fontSize: 14, marginBottom: 18, animation: "pulse 2s ease infinite", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}><Icon name="clock" size={16}/><span>Selesaikan dalam {mm}:{ss}</span></div>
           <div style={{ background: "#fff", borderRadius: 18, padding: 24, border: "1px solid #eee", display: "inline-block", width: "100%" }}>
             <div style={{ fontWeight: 700, fontSize: 13, color: "#333", marginBottom: 16 }}>ESB RESTAURANT TECHNOLOGY</div>
             <div style={{ width: 180, height: 180, margin: "0 auto", display: "grid", gridTemplateColumns: "repeat(10,1fr)", gridTemplateRows: "repeat(10,1fr)", border: "6px solid #fff", boxShadow: "0 0 0 1px #ddd", borderRadius: 4 }}>
